@@ -9,17 +9,43 @@
 
   <head>
 
-    <% base_tag %>
-
     <title>Slidatron Demo</title>
 
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://raw.githubusercontent.com/dextermilo/jquery.threedubmedia/master/event.drag/jquery.event.drag.js"></script>
+    <script src="https://raw.githubusercontent.com/dextermilo/jquery.threedubmedia/master/event.drag/jquery.event.drag.live.js"></script>
+    <script src="../vendor/jquery.drag.touch.js"></script>
+    <script src="../jquery.slidatron.js"></script>
 
-  </head> 
-  <body>
+    <script>
+    $(document).ready(function(){
+        $('#container').slidatron({
+            onAfterMove: function() {
 
-  </body>
+            },
+            onAfterInit: function() {
+                alert("I'm Alive!");
+            },
+        })
+    });     
+    </script>
+
+    </head> 
+    <body>
+
+        <div id="container">
+            <div>
+                I am some html
+            </div>
+            <div>
+                I am some other html
+            </div>            
+        </div>
+
+    </body>
 
 </html>

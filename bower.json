@@ -9,7 +9,7 @@
   "main": "jquery.slidatron.js",
   "license": "MIT",
   "dependencies": {
-    "jquery"                  : "~1.10.2",
+    "jquery"                  : "~1.11",
     "jquery.event.drag-drop"  : "~2.2.1"
   }
 }
