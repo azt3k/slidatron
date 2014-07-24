@@ -130,7 +130,8 @@
 				var $ctrlElem = $('<a href="#' + id + '" id="' + ctrlId + '"></a>');
 				$ctrlElem.on('click', function (e) {
 					e.preventDefault();
-					var index = parseInt($(this).attr('id').split('-')[3]);
+					var pieces = $(this).attr('id').split('-');
+					var index = parseInt(pieces[pieces.length-1]);
 					_this.stopShow();
 					_this.move(index);
 					_this.startShow();
