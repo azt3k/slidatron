@@ -42,6 +42,15 @@
         this.options = $.extend({}, defaults, options);
         this._defaults = defaults;
         this._name = pluginName;
+
+        if ($('.' + this.options.classNameSpace + '-container').length) {
+        	var i = 2;
+	        while ($('.' + this.options.classNameSpace + '-' + i + '-container').length) {
+	        	i++;
+	        }
+	        this.options.classNameSpace += '-' + i
+	    }
+
         this.init();
     }
 
@@ -67,7 +76,7 @@
 			var _this			= this;
 			
             // handle existing html nodes
-			var $container		= $(this.element).addClass(options.classNameSpace+'-container');
+			var $container		= $(this.element).addClass(options.classNameSpace + '-container');
             var $slides			= options.slideSelector ? $container.find(options.slideSelector) : $container.children() ;
 			
 			// grab the dims of the container
@@ -75,7 +84,7 @@
 			var containerH		= $container.height();
 			
 			// new html nodes
-            var $slideWrapper	=	$('<div class="'+options.classNameSpace+'-slide-wrapper"></div>').css({
+            var $slideWrapper	=	$('<div class="' + options.classNameSpace + '-slide-wrapper"></div>').css({
 										position	: 'absolute',
 										top			: 0,
 										left		: 0,
@@ -242,17 +251,17 @@
 			}, this.options.holdTime);
 			
 			// add current to the first index
-			if (!$('.slidatron-ctrl-wrapper a.current').length) {
+			if (!$('.' + this.options.classNameSpace + '-ctrl-wrapper a.current').length) {
 				var ids = this.generateIndentifiers(0);
-				$('.slidatron-ctrl-wrapper a').removeClass('current');
-				$('#'+ids.ctrlId).addClass('current');
+				$('.' + this.options.classNameSpace + '-ctrl-wrapper a').removeClass('current');
+				$('#' + ids.ctrlId).addClass('current');
 			}
 		},
 		
 		stopShow: function() {
 			// stop slideshow
-			clearTimeout(this.timeoutHandle);			
-		},		
+			clearTimeout(this.timeoutHandle);
+		},
 		
 		timeoutCallback: function() {
 			var next = (this.curIndex + 1) > (this.slides.length - 1) ? 0 : this.curIndex + 1 ;
@@ -264,10 +273,10 @@
 			var _this			= this;
 			var $slideWrapper	= this.slideWrapper;
 			var $container		= this.container;
-			var target			= -(index * $container.width());			
-			var next			= (target) > (this.slides.length - 1) ? 0 : target ;		
+			var target			= -(index * $container.width());
+			var next			= (target) > (this.slides.length - 1) ? 0 : target ;
 			
-			if (typeof time == 'undefined') time = _this.options.transitionTime;			
+			if (typeof time == 'undefined') time = _this.options.transitionTime;
 			
 			// do the animation
 			$slideWrapper.stop().animate({
@@ -279,15 +288,15 @@
 				
 				// this is in here 3 times
 				var ids = _this.generateIndentifiers(index);
-				$('.slidatron-ctrl-wrapper a').removeClass('current');
-				$('#'+ids.ctrlId).addClass('current');
+				$('.' + _this.options.classNameSpace + '-ctrl-wrapper a').removeClass('current');
+				$('#' + ids.ctrlId).addClass('current');
 
 				// add the curret class to the current slide
-				$('.slidatron-slide').removeClass('current');
-				$('.slidatron-slide-'+index).addClass('current');
+				$('.' + _this.options.classNameSpace + '-slide').removeClass('current');
+				$('.' + _this.options.classNameSpace + '-slide-'+index).addClass('current');
 
 				// run the post
-				if (typeof _this.options.onAfterMove == 'function') _this.options.onAfterMove();				
+				if (typeof _this.options.onAfterMove == 'function') _this.options.onAfterMove();
 				
 			});			
 			
