@@ -90,15 +90,15 @@
 										left		: 0,
 										width		: $slides.length * containerW
 									});
-            var $ctrlWrapper	=	$('<div class="'+options.classNameSpace+'-ctrl-wrapper"></div>');
-			var $next			=	$('<a class="'+options.classNameSpace+'-next">&gt;</a>').on('click',function(e) {
+            var $ctrlWrapper	=	$('<div class="' + options.classNameSpace + '-ctrl-wrapper"></div>');
+			var $next			=	$('<a class="' + options.classNameSpace + '-next">&gt;</a>').on('click',function(e) {
 										e.preventDefault();
 										var next = (_this.curIndex + 1) > (_this.slides.length - 1) ? 0 : _this.curIndex + 1 ;
 										_this.stopShow();
 										_this.move(next);
 										_this.startShow();
 									});
-			var $prev			=	$('<a class="'+options.classNameSpace+'-prev">&lt;</a>').on('click',function(e) {
+			var $prev			=	$('<a class="' + options.classNameSpace + '-prev">&lt;</a>').on('click',function(e) {
 										e.preventDefault();
 										var prev = (_this.curIndex - 1) < 0 ? (_this.slides.length - 1) : _this.curIndex - 1 ;
 										_this.stopShow();
@@ -127,7 +127,7 @@
 				$slideWrapper.append($this);
 				
 				// add a control elem for this slide
-				var $ctrlElem = $('<a href="#'+id+'" id="'+ctrlId+'"></a>');
+				var $ctrlElem = $('<a href="#' + id + '" id="' + ctrlId + '"></a>');
 				$ctrlElem.on('click', function (e) {
 					e.preventDefault();
 					var index = parseInt($(this).attr('id').split('-')[3]);
@@ -232,9 +232,9 @@
 		
 		generateIndentifiers: function(index) {
 			// this is in here 3 times
-			var className	= this.options.classNameSpace+'-slide';
-			var id			= className+'-'+index;
-			var ctrlId		= 'ctrl-'+id;
+			var className	= this.options.classNameSpace + '-slide';
+			var id			= className + '-' + index;
+			var ctrlId		= 'ctrl-' + id;
 			return {
 				'className'	: className,
 				'id'		: id,
@@ -293,7 +293,7 @@
 
 				// add the curret class to the current slide
 				$('.' + _this.options.classNameSpace + '-slide').removeClass('current');
-				$('.' + _this.options.classNameSpace + '-slide-'+index).addClass('current');
+				$('.' + _this.options.classNameSpace + '-slide-' + index).addClass('current');
 
 				// run the post
 				if (typeof _this.options.onAfterMove == 'function') _this.options.onAfterMove();
