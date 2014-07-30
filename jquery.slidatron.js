@@ -19,7 +19,7 @@
     // minified (especially when both are regularly referenced in your plugin).
 
     // Create the defaults once
-    var pluginVersion = "0.1.2";
+    var pluginVersion = "0.1.3";
     var pluginName = "slidatron";
     var defaults = {
         slideSelector   : null,
