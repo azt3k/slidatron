@@ -1,6 +1,6 @@
 {
   "name": "slidatron",
-  "version": "0.0.1",
+  "version": "0.1.2",
   "description": "jQuery component",
   "keywords": [
     "jquery",
@@ -9,7 +9,7 @@
   "main": "jquery.slidatron.js",
   "license": "MIT",
   "dependencies": {
-    "jquery"                  : "~1.11",
+    "jquery"                  : "~1.11.1",
     "jquery.event.drag-drop"  : "~2.2.1"
   }
 }
