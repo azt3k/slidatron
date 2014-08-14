@@ -19,7 +19,7 @@
     // minified (especially when both are regularly referenced in your plugin).
 
     // Create the defaults once
-    var pluginVersion = "0.1.3";
+    var pluginVersion = "0.1.4";
     var pluginName = "slidatron";
     var defaults = {
         slideSelector   : null,
@@ -27,7 +27,8 @@
 		holdTime		: 9000,
 		transitionTime	: 1500,
 		onAfterInit		: null,
-		onAfterMove		: null
+		onAfterMove		: null,
+		autoSlide		: true
     };
 
     // The actual plugin constructor
@@ -255,17 +256,20 @@
 
 		startShow: function() {
 
-			// init the slideshow
-			var _this = this;
-			this.timeoutHandle = setInterval(function() {
-				_this.timeoutCallback();
-			}, this.options.holdTime);
+			if (this.options.autoSlide) {
 
-			// add current to the first index
-			if (!$('.' + this.options.classNameSpace + '-ctrl-wrapper a.current').length) {
-				var ids = this.generateIndentifiers(0);
-				$('.' + this.options.classNameSpace + '-ctrl-wrapper a').removeClass('current');
-				$('#' + ids.ctrlId).addClass('current');
+				// init the slideshow
+				var _this = this;
+				this.timeoutHandle = setInterval(function() {
+					_this.timeoutCallback();
+				}, this.options.holdTime);
+
+				// add current to the first index
+				if (!$('.' + this.options.classNameSpace + '-ctrl-wrapper a.current').length) {
+					var ids = this.generateIndentifiers(0);
+					$('.' + this.options.classNameSpace + '-ctrl-wrapper a').removeClass('current');
+					$('#' + ids.ctrlId).addClass('current');
+				}
 			}
 		},
 
