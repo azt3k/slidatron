@@ -1,0 +1,4 @@
+#!/bin/bash
+
+OUTPUT=$(uglifyjs jquery.slidatron.js -m -r '$,require,exports')
+echo ";$OUTPUT" > jquery.slidatron.min.js

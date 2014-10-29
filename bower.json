@@ -1,15 +1,22 @@
 {
   "name": "slidatron",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "jQuery component",
   "keywords": [
     "jquery",
-    "component"
+    "component",
+    "slider",
+    "sliatron",
+    "carousel",
+    "drag",
+    "drop",
+    "touch"
   ],
   "main": "jquery.slidatron.js",
   "license": "MIT",
   "dependencies": {
     "jquery"                  : "~1.11.1",
-    "jquery.event.drag-drop"  : "~2.2.1"
+    "jquery.event.drag-drop"  : "~2.2.1",
+    "gsap"                    : "~1.14.1"
   }
 }

@@ -1,0 +1,31 @@
+{
+  "name": "slidatron",
+  "version": "0.2.0",
+  "description": "CSS / mobile friendly jQuery slider",
+  "main": "jquery.slidatron.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/azt3k/sliatron.git"
+  },
+  "devDependencies": {
+    "uglify-js": "2.4.15"
+  },
+  "keywords": [
+    "jquery",
+    "component",
+    "slider",
+    "sliatron",
+    "carousel",
+    "drag",
+    "drop",
+    "touch"
+  ],
+  "author": "Aaron Latham-Ilari",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/azt3k/slidatron/issues"
+  }
+}
