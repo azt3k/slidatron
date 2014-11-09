@@ -212,7 +212,7 @@
             });
 
             // attach the drag event
-            $slideWrapper.mousedown(function(ev){
+            $slideWrapper.on('mousedown', function(ev){
 
                 blockClick = false;
 

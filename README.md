@@ -1,6 +1,6 @@
 ## Usage
 
-### Javascript
+### JavaScript
 
 ````javascript
 $(document).ready(function(){
@@ -88,7 +88,7 @@ The hold time in ms for each slide
 
 #### transitionTime
 
-How long it takes to move from one slide to the next one
+How long it takes in ms to move from one slide to the next one
 
 
 #### onAfterInit

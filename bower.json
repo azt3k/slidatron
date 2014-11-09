@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "jquery"                  : "~1.11.1",
-    "jquery.event.drag-drop"  : "~2.2.1",
+    "jquery.event.drag-drop"  : "git://github.com/GerHobbelt/jquery.threedubmedia",
     "gsap"                    : "~1.14.1"
   }
 }
