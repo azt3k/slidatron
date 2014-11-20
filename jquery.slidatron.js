@@ -22,7 +22,7 @@
     "use strict"
 
     // Create the defaults once
-    var pluginVersion = "0.2.4";
+    var pluginVersion = "0.2.5";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine : null, // gsap or jquery / css
@@ -290,6 +290,26 @@
                     i++;
 
                 });
+
+                // duplicate of drag end
+                // ---------------------
+
+                // save the position
+                _this.position = _this.curLeft();
+
+                // what are we closest to?
+                var cur = _this.curLeft();
+                var mod = Math.abs(cur % containerW);
+                var mid = Math.abs(containerW / 2);
+
+                // calc some references
+                var goNext = mod > mid ? true : false ;
+                var index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
+
+                // animate to location
+                _this.move(index, undefined, function() { _this.startShow(); });
+
+                // ---------------------
 
             });
 
