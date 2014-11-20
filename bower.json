@@ -1,6 +1,6 @@
 {
   "name": "slidatron",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "jQuery component",
   "keywords": [
     "jquery",
@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "jquery"                  : "~1.11.1",
-    "jquery.event.drag-drop"  : "git://github.com/GerHobbelt/jquery.threedubmedia",
+    "jquery.event.drag-drop"  : "https://rawgit.com/GerHobbelt/jquery.threedubmedia/master/event.drag/jquery.event.drag.js",
     "gsap"                    : "~1.14.1"
   }
 }
