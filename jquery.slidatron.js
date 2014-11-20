@@ -22,7 +22,7 @@
     "use strict"
 
     // Create the defaults once
-    var pluginVersion = "0.2.3";
+    var pluginVersion = "0.2.4";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine : null, // gsap or jquery / css
@@ -73,6 +73,8 @@
         tweenHandle: null,
         moving: false,
         accelerated: false,
+        $original: null,
+        originalHTML: null,
         init: function () {
 
             // Place initialization logic here
@@ -81,6 +83,10 @@
             // and this.options
             // you can add more functions like the one below and
             // call them like so: this.yourOtherFunction(this.element, this.options).
+
+            //save a copy for later
+            this.$original = $(this.element).clone()
+            this.originalHTML = $(this.element)[0].outerHTML;
 
             // set the scope of some vars
             var options         = this.options;
@@ -497,15 +503,39 @@
             // stores the moving state
             this.moving = true;
 
+        },
+
+        destroy: function() {
+            var $replacement = $(this.originalHTML);
+            this.slideWrapper.after($replacement);
+            this.slideWrapper.remove();
+            $('.' + this.options.classNameSpace + '-container').remove();
+            $('.' + this.options.classNameSpace + '-ctrl-wrapper').remove();
+            $('.' + this.options.classNameSpace + '-next').remove();
+            $('.' + this.options.classNameSpace + '-prev').remove();
+            return $replacement;
         }
     };
 
     // A really lightweight plugin wrapper around the constructor,
     // preventing against multiple instantiations
-    $.fn[pluginName] = function (options) {
-        return this.each(function () {
+    $.fn[pluginName] = function(options) {
+        var self = this;
+        return this.each(function (idx) {
             if (!$.data(this, "plugin_" + pluginName)) {
                 $.data(this, "plugin_" + pluginName, new Plugin(this, options));
+            } else {
+                if (options == 'destroy'){
+
+                    var plugin = $.data(this, "plugin_" + pluginName);
+                    var destroyed = plugin.destroy();
+
+                    if (destroyed != undefined) self[idx] = destroyed[0];
+                    if (plugin) plugin = null;
+
+                    $.data(this, "plugin_" + pluginName, null);
+
+                }
             }
         });
     };
