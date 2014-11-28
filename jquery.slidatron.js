@@ -22,20 +22,23 @@
     "use strict"
 
     // Create the defaults once
-    var pluginVersion = "0.2.5";
+    var pluginVersion = "0.2.6";
     var pluginName = "slidatron";
     var defaults = {
-        animationEngine : null, // gsap or jquery / css
-        easing          : null,
-        slideSelector   : null,
-        classNameSpace  : "slidatron",
-        holdTime        : 9000,
-        transitionTime  : 1500,
-        onAfterInit     : null,
-        onAfterMove     : null,
-        onBeforeInit    : null,
-        onBeforeMove    : null,
-        autoSlide       : true
+        animationEngine     : null, // gsap or jquery / css
+        easing              : null,
+        slideSelector       : null,
+        classNameSpace      : "slidatron",
+        holdTime            : 9000,
+        transitionTime      : 1500,
+        onAfterInit         : null, // ($elem)
+        onAfterMove         : null,
+        onBeforeInit        : null, // ($elem)
+        onBeforeMove        : null,
+        autoSlide           : true,
+        adaptiveHeight      : false,
+        onBeforeAdaptHeight : null,
+        onAfterAdaptHeight  : null
     };
 
     // The actual plugin constructor
@@ -64,6 +67,7 @@
 
     Plugin.prototype = {
         slides: [],
+        styleCache: {},
         mapping: {},
         curIndex: 0,
         position: 0,
@@ -96,7 +100,7 @@
             this.accelerated    = this.isAccelerated();
 
             // run the pre
-            if (typeof options.onBeforeInit == 'function') options.onBeforeInit();
+            if (typeof options.onBeforeInit == 'function') options.onBeforeInit($(this.element));
 
             // handle existing html nodes
             var $container      = $(this.element).addClass(options.classNameSpace + '-container').addClass('st-container');
@@ -104,7 +108,10 @@
 
             // grab the dims of the container
             var containerW      = $container.width();
-            var containerH      = $container.height();
+            var containerH      = options.adaptiveHeight ? this.maxH($slides, true) : $container.height();
+
+            // stash the styles on the container
+            this.setCachedStyle($container);
 
             // new html nodes
             var $slideWrapper   =   $('<div class="' + options.classNameSpace + '-slide-wrapper st-slide-wrapper"></div>').css({
@@ -114,7 +121,7 @@
                                         width       : $slides.length * containerW
                                     });
             var $ctrlWrapper    =   $('<div class="' + options.classNameSpace + '-ctrl-wrapper st-ctrl-wrapper"></div>');
-            var $next           =   $('<a class="' + options.classNameSpace + '-next st-next">&gt;</a>').on('click', function(e) {
+            var $next           =   $('<a class="' + options.classNameSpace + '-next st-next">&gt;</a>').on('tap, click', function(e) {
                                         e.preventDefault();
                                         if (!_this.moving) {
                                             var next = (_this.curIndex + 1) > (_this.slides.length - 1) ? 0 : _this.curIndex + 1 ;
@@ -123,7 +130,7 @@
                                             _this.startShow();
                                         }
                                     });
-            var $prev           =   $('<a class="' + options.classNameSpace + '-prev st-prev">&lt;</a>').on('click', function(e) {
+            var $prev           =   $('<a class="' + options.classNameSpace + '-prev st-prev">&lt;</a>').on('tap, click', function(e) {
                                         e.preventDefault();
                                         if (!_this.moving) {
                                             var prev = (_this.curIndex - 1) < 0 ? (_this.slides.length - 1) : _this.curIndex - 1 ;
@@ -133,6 +140,8 @@
                                         }
                                     });
 
+            // stash the max h
+            var maxH = this.maxH($slides);
 
             // process slides
             var i = 0;
@@ -140,6 +149,9 @@
 
                 // get some vars
                 var $this       = $(this);
+
+                // stash the original styles
+                _this.setCachedStyle($this);
 
                 // this is in here 3 times
                 var ids         = _this.generateIndentifiers(i);
@@ -155,7 +167,7 @@
 
                 // add a control elem for this slide
                 var $ctrlElem = $('<a class="st-ctrl-elem" href="#' + id + '" id="' + ctrlId + '"></a>');
-                $ctrlElem.on('click', function (e) {
+                $ctrlElem.on('tap, click', function (e) {
                     e.preventDefault();
                     if (!_this.moving) {
                         var pieces = $(this).attr('id').split('-');
@@ -177,13 +189,16 @@
                 $this.css(_this.cssLeft(i * containerW, {
                     position    : 'absolute',
                     top         : 0,
-                    width       : containerW
+                    width       : _this.slideW(containerW, $this),
                 }));
 
                 // increment counter
                 i++;
 
             });
+
+            // adaptive height?
+            if (options.adaptiveHeight) $slides.css('height', maxH);
 
             // save these for later
             this.slides = $slides;
@@ -211,6 +226,26 @@
 
             // init block click flag
             var blockClick = false;
+
+            // set dragend func in this context for sharing the containerW love
+            var dragEnd = function() {
+
+                // save the position
+                _this.position = _this.curLeft();
+
+                // what are we closest to?
+                var cur = _this.curLeft();
+                var mod = Math.abs(cur % containerW);
+                var mid = Math.abs(containerW / 2);
+
+                // calc some references
+                var goNext = mod > mid ? true : false ;
+                var index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
+
+                // animate to location
+                _this.move(index, undefined, function() { _this.startShow(); });
+
+            }
 
             // click handler
             $slideWrapper.find('a').on('click', function(ev){
@@ -250,20 +285,7 @@
                 // prevent a click from triggering if the delta exceeds the threshold
                 blockClick = Math.abs(dd.deltaX) > 5;
 
-                // save the position
-                _this.position = _this.curLeft();
-
-                // what are we closest to?
-                var cur = _this.curLeft();
-                var mod = Math.abs(cur % containerW);
-                var mid = Math.abs(containerW / 2);
-
-                // calc some references
-                var goNext = mod > mid ? true : false ;
-                var index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
-
-                // animate to location
-                _this.move(index, undefined, function() { _this.startShow(); });
+                dragEnd();
 
             }).css({ 'cursor' : 'move' }); // set the cursor to the "move" one
 
@@ -271,13 +293,48 @@
             // resize callback
             $(window).resize(function() {
 
+                // fush the current width from the container so it doesn't fuck our measurement
+                _this.stopAnimation();
+                $container.css({width: ''});
+
                 // grab the dims of the container
                 var containerW = $container.parent().width();
 
-                // set width
-                $container.css({ 'width' : containerW });
-                $slides.css({ 'width' : containerW });
-                $slideWrapper.css({ 'width' : $slides.length * containerW });
+                // adaptive height
+                if (options.adaptiveHeight) {
+                    if (typeof options.onBeforeAdaptHeight == 'function') options.onBeforeAdaptHeight();
+
+                    // reset
+                    $slides.css({height: '', width: ''});
+                    $slideWrapper.css({width: '', height: ''});
+
+                    // set width - dupe
+                    $container.css({ width: containerW });
+                    $slides.each(function() { $(this).css({ width: _this.slideW(containerW, $(this)) }); });
+                    $slideWrapper.css({ width: $slides.length * containerW });
+
+                    // measure
+                    var outerMaxH = _this.maxH($slides, true);
+
+                    // apply
+                    console.log('fuck: ' + outerMaxH);
+                    $slideWrapper.css({height: outerMaxH});
+                    $container.css({height: $slideWrapper.outerHeight(true)});
+
+                    // measure
+                    // var maxH = _this.maxH($slides);
+                    // $slides.css({height: maxH});
+
+                    if (typeof options.onAfterAdaptHeight == 'function') options.onAfterAdaptHeight();
+                }
+                else {
+
+                    // set width - dupe
+                    $container.css({ width: containerW });
+                    $slides.each(function() { $(this).css({ width: _this.slideW(containerW, $(this)) }); });
+                    $slideWrapper.css({ width: $slides.length * containerW });
+
+                }
 
                 // process slides
                 var i = 0;
@@ -291,25 +348,7 @@
 
                 });
 
-                // duplicate of drag end
-                // ---------------------
-
-                // save the position
-                _this.position = _this.curLeft();
-
-                // what are we closest to?
-                var cur = _this.curLeft();
-                var mod = Math.abs(cur % containerW);
-                var mid = Math.abs(containerW / 2);
-
-                // calc some references
-                var goNext = mod > mid ? true : false ;
-                var index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
-
-                // animate to location
-                _this.move(index, undefined, function() { _this.startShow(); });
-
-                // ---------------------
+                dragEnd();
 
             });
 
@@ -317,8 +356,75 @@
             _this.startShow();
 
             // run the post
-            if (typeof options.onAfterInit == 'function') options.onAfterInit();
+            if (typeof options.onAfterInit == 'function') options.onAfterInit($(this.element));
 
+        },
+
+        slideW: function(targetW, $elem) {
+            var dif = $elem.outerWidth(true) - $elem.width();
+            return targetW - dif;
+        },
+
+        slideH: function(targetH, $elem) {
+            var dif = $elem.outerHeight(true) - $elem.height();
+            return targetH - dif;
+        },
+
+        uid: function($elem) {
+            var id = $elem.attr('id');
+            if (!id) {
+                while (!id || $('#' + id).length) {
+                    id = Math.floor(Math.random() * 10000) + 1;
+                }
+                $elem.attr('id', id);
+            }
+            return id;
+        },
+
+        getCachedStyle: function($elem) {
+            var uid = this.uid($elem);
+            return this.styleCache[uid];
+        },
+
+        setCachedStyle: function($elem) {
+            var uid = this.uid($elem);
+            this.styleCache[uid] = $elem.attr('style');
+            return this;
+        },
+
+        reApplyCachedStyle: function($elem) {
+            $elem.attr('style', this.getCachedStyle($elem));
+            return this;
+        },
+
+        maxH: function($set, outer) {
+
+            var h = 0, hTmp = 0;
+
+            $set.each(function() {
+
+                var $this = $(this);
+
+                //hTmp = outer != undefined && outer ? $this.outerHeight(true): $this.height();
+
+                if (outer != undefined && outer) {
+                    hTmp = $this.outerHeight(true);
+                    // hTmp = $this.height();
+                    // hTmp += parseFloat($this.css('padding-top') || 0);
+                    // hTmp += parseFloat($this.css('padding-bottom') || 0);
+                    // hTmp += parseFloat($this.css('border-top-height') || 0);
+                    // hTmp += parseFloat($this.css('border-bottom-height') || 0);
+                    // hTmp += parseFloat($this.css('margin-top') || 0);
+                    // hTmp += parseFloat($this.css('margin-bottom') || 0);
+                }
+                else { hTmp = $this.height(); }
+
+                // console.log(hTmp + ' v ' + $this.outerHeight(true) );
+
+                if (h < hTmp) h = hTmp;
+            });
+
+            return h;
         },
 
         easing: function() {
@@ -350,6 +456,21 @@
 
                 }
             }
+        },
+
+        isSameLeft: function(to, $elem) {
+
+            var left;
+
+            if (this.accelerated) {
+                left = to['transform'].match(/(-?[0-9\.]+)/g);
+                if (left && typeof left == 'object') left = left[4];
+            } else {
+                left = to['left'];
+            }
+
+            return left == this.curLeft($elem);
+
         },
 
         cssLeft: function(left, obj) {
@@ -510,10 +631,12 @@
             } else {
 
                 if (this.accelerated) {
+
                     $slideWrapper
                         .one('transitionend.move webkitTransitionEnd.move oTransitionEnd.move otransitionend.move MSTransitionEnd.move', callback)
                         .css({transition: 'transform ' + time / 1000 + 's ' + this.easing()})
                         .css(to);
+
                 } else {
                     $slideWrapper.animate(to, time, this.easing(), callback);
                 }
@@ -522,6 +645,11 @@
 
             // stores the moving state
             this.moving = true;
+
+            // same? - then set moving to false as transition wont run
+            if (this.accelerated && this.options.animationEngine != 'gsap' && this.isSameLeft(to, $slideWrapper)) {
+                this.moving = false;
+            }
 
         },
 
@@ -561,3 +689,4 @@
     };
 
 })(jQuery, window, document);
+
