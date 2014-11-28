@@ -22,7 +22,7 @@
     "use strict"
 
     // Create the defaults once
-    var pluginVersion = "0.2.7";
+    var pluginVersion = "0.2.8";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -31,14 +31,14 @@
         classNameSpace      : "slidatron",
         holdTime            : 9000,
         transitionTime      : 1500,
-        onAfterInit         : null, // ($elem)
-        onAfterMove         : null,
-        onBeforeInit        : null, // ($elem)
-        onBeforeMove        : null,
+        onAfterInit         : null, // ($elem, this)
+        onAfterMove         : null, // ($elem, this)
+        onBeforeInit        : null, // ($elem, this)
+        onBeforeMove        : null, // ($elem, this)
         autoSlide           : true,
         adaptiveHeight      : false,
-        onBeforeAdaptHeight : null,
-        onAfterAdaptHeight  : null
+        onBeforeAdaptHeight : null, // ($elem, this)
+        onAfterAdaptHeight  : null  // ($elem, this)
     };
 
     // The actual plugin constructor
@@ -100,7 +100,7 @@
             this.accelerated    = this.isAccelerated();
 
             // run the pre
-            if (typeof options.onBeforeInit == 'function') options.onBeforeInit($(this.element));
+            if (typeof options.onBeforeInit == 'function') options.onBeforeInit($(this.element), this);
 
             // handle existing html nodes
             var $container      = $(this.element).addClass(options.classNameSpace + '-container').addClass('st-container');
@@ -228,7 +228,7 @@
             var blockClick = false;
 
             // set dragend func in this context for sharing the containerW love
-            var dragEnd = function() {
+            var dragEnd = function(index) {
 
                 // save the position
                 _this.position = _this.curLeft();
@@ -240,7 +240,7 @@
 
                 // calc some references
                 var goNext = mod > mid ? true : false ;
-                var index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
+                if (index == undefined) index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
 
                 // animate to location
                 _this.move(index, undefined, function() { _this.startShow(); });
@@ -302,7 +302,7 @@
 
                 // adaptive height
                 if (options.adaptiveHeight) {
-                    if (typeof options.onBeforeAdaptHeight == 'function') options.onBeforeAdaptHeight();
+                    if (typeof options.onBeforeAdaptHeight == 'function') options.onBeforeAdaptHeight($(_this.element), _this);
 
                     // reset
                     $slides.css({height: '', width: ''});
@@ -325,7 +325,7 @@
                     // var maxH = _this.maxH($slides);
                     // $slides.css({height: maxH});
 
-                    if (typeof options.onAfterAdaptHeight == 'function') options.onAfterAdaptHeight();
+                    if (typeof options.onAfterAdaptHeight == 'function') options.onAfterAdaptHeight($(_this.element), _this);
                 }
                 else {
 
@@ -348,7 +348,7 @@
 
                 });
 
-                dragEnd();
+                dragEnd(_this.curIndex);
 
             });
 
@@ -356,7 +356,7 @@
             _this.startShow();
 
             // run the post
-            if (typeof options.onAfterInit == 'function') options.onAfterInit($(this.element));
+            if (typeof options.onAfterInit == 'function') options.onAfterInit($(this.element), this);
 
         },
 
@@ -598,7 +598,7 @@
                 $('.' + _this.options.classNameSpace + '-slide-' + index).addClass('current');
 
                 // run the post
-                if (typeof _this.options.onAfterMove == 'function') _this.options.onAfterMove();
+                if (typeof _this.options.onAfterMove == 'function') _this.options.onAfterMove($(_this.element), _this);
 
                 // run supplied callback - hmmmm - not 100% sure about this
                 if (typeof cb == 'function') cb();
@@ -606,7 +606,7 @@
             }
 
             // run the pre callback
-            if (typeof _this.options.onBeforeMove == 'function') _this.options.onBeforeMove();
+            if (typeof this.options.onBeforeMove == 'function') this.options.onBeforeMove($(this.element), this);
 
             // set a time
             if (time == undefined) time = this.options.transitionTime;
