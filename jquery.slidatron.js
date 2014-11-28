@@ -22,7 +22,7 @@
     "use strict"
 
     // Create the defaults once
-    var pluginVersion = "0.2.6";
+    var pluginVersion = "0.2.7";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -317,7 +317,7 @@
                     var outerMaxH = _this.maxH($slides, true);
 
                     // apply
-                    console.log('fuck: ' + outerMaxH);
+                    // console.log('fuck: ' + outerMaxH);
                     $slideWrapper.css({height: outerMaxH});
                     $container.css({height: $slideWrapper.outerHeight(true)});
 
