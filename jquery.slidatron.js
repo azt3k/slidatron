@@ -5,24 +5,13 @@
  *  License: BSD
  */
 
-// the semi-colon before function invocation is a safety net against concatenated
-// scripts and/or other plugins which may not be closed properly.
 ;(function ($, window, document, undefined) {
 
-    // undefined is used here as the undefined global variable in ECMAScript 3 is
-    // mutable (ie. it can be changed by someone else). undefined isn't really being
-    // passed in so we can ensure the value of it is truly undefined. In ES5, undefined
-    // can no longer be modified.
-
-    // window and document are passed through as local variable rather than global
-    // as this (slightly) quickens the resolution process and can be more efficiently
-    // minified (especially when both are regularly referenced in your plugin).
-
     // use strict mode
-    "use strict"
+    "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.2.9";
+    var pluginVersion = "0.2.10";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -31,6 +20,7 @@
         classNameSpace      : "slidatron",
         holdTime            : 9000,
         transitionTime      : 1500,
+        translateY          : false,
         onAfterInit         : null, // ($elem, this)
         onAfterMove         : null, // ($elem, this)
         onBeforeInit        : null, // ($elem, this)
@@ -46,10 +36,6 @@
 
         this.element = element;
 
-        // jQuery has an extend method which merges the contents of two or
-        // more objects, storing the result in the first object. The first object
-        // is generally empty as we don't want to alter the default options for
-        // future instances of the plugin
         this.options = $.extend({}, defaults, options);
         this._defaults = defaults;
         this._name = pluginName;
@@ -80,13 +66,6 @@
         $original: null,
         originalHTML: null,
         init: function () {
-
-            // Place initialization logic here
-            // You already have access to the DOM element and
-            // the options via the instance, e.g. this.element
-            // and this.options
-            // you can add more functions like the one below and
-            // call them like so: this.yourOtherFunction(this.element, this.options).
 
             //save a copy for later
             this.$original = $(this.element).clone()
@@ -224,28 +203,28 @@
             this.container = $container;
             this.position = this.curLeft();
 
-            // init block click flag
-            var blockClick = false;
+            // init shared vars for the drag etc
+            var blockClick = false,
+                $scrollElem,
+                refScrollPoint,
+                dragEnd = function(index) {
 
-            // set dragend func in this context for sharing the containerW love
-            var dragEnd = function(index) {
+                    // save the position
+                    _this.position = _this.curLeft();
 
-                // save the position
-                _this.position = _this.curLeft();
+                    // what are we closest to?
+                    var cur = _this.curLeft();
+                    var mod = Math.abs(cur % containerW);
+                    var mid = Math.abs(containerW / 2);
 
-                // what are we closest to?
-                var cur = _this.curLeft();
-                var mod = Math.abs(cur % containerW);
-                var mid = Math.abs(containerW / 2);
+                    // calc some references
+                    var goNext = mod > mid ? true : false ;
+                    if (index == undefined) index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
 
-                // calc some references
-                var goNext = mod > mid ? true : false ;
-                if (index == undefined) index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
+                    // animate to location
+                    _this.move(index, undefined, function() { _this.startShow(); });
 
-                // animate to location
-                _this.move(index, undefined, function() { _this.startShow(); });
-
-            }
+                };
 
             // click handler
             $slideWrapper.find('a').on('click', function(ev){
@@ -255,7 +234,14 @@
             // attach the drag event
             $slideWrapper.on('mousedown touchstart', function(ev){
 
+                // init shared vars
                 blockClick = false;
+
+                // init shared vars (translate specific)
+                if (options.translateY) {
+                    $scrollElem = _this.findScrollingParent($slideWrapper);
+                    refScrollPoint = $scrollElem.scrollTop();
+                }
 
                 // stop the show once the mouse is pressed
                 _this.stopShow();
@@ -274,6 +260,9 @@
                 var c       = { x1 : -($slideWrapper.width() - containerW) , x2 : 0 };
                 var n       = parseFloat(_this.position) + parseFloat(dd.deltaX);
 
+                // translate scroll
+                if (options.translateY) $scrollElem.scrollTop(refScrollPoint - dd.deltaY);
+
                 // block if we we've blown the containment field
                 if (n < c.x1 || n > c.x2) xBlown = true;
 
@@ -282,8 +271,11 @@
 
             }).drag("end",function( ev, dd ){
 
-                // prevent a click from triggering if the delta exceeds the threshold
+                // prevent a click from triggering if the delta exceeds the x threshold
                 blockClick = Math.abs(dd.deltaX) > 5;
+
+                // prevent a click from triggering if the delta exceeds the y threshold
+                if (options.translateY && !blockClick) blockClick = Math.abs(dd.deltaY) > 5;
 
                 dragEnd();
 
@@ -352,12 +344,55 @@
 
             });
 
+            // attach y-translation (touch only)
+            // this.touchScroll();
+
             // start show now that we have finished setting up
-            _this.startShow();
+            this.startShow();
 
             // run the post
             if (typeof options.onAfterInit == 'function') options.onAfterInit($(this.element), this);
 
+        },
+
+        hasTouch: function() {
+            try {
+                document.createEvent("TouchEvent");
+                return true;
+            } catch (e) {
+                return false;
+            }
+        },
+
+        touchScroll: function () {
+            if (this.hasTouch()) {
+                var scrollStartTop = 0,
+                    conf = this.settings,
+                    $scrollElem = this.findScrollingParent(this.slideWrapper),
+                    start = function(e) {
+                        console.log($scrollElem);
+                        scrollStartTop = $scrollElem.scrollTop() + e.originalEvent.touches[0].pageY;
+                        //event.preventDefault();
+                    },
+                    move = function(e) {
+                        $scrollElem.scrollTop(scrollStartTop - e.originalEvent.touches[0].pageY);
+                        //event.preventDefault();
+                    };
+
+                this.slideWrapper
+                    .off("touchstart.touchScroll")
+                    .on("touchstart.touchScroll", start)
+                    .off("touchmove.touchScroll")
+                    .on("touchmove.touchScroll", move);
+            }
+        },
+
+        findScrollingParent: function($elem) {
+            var $parent = $elem;
+            while ($parent && $parent.css('overflow-y') != 'scroll' && $parent.css('overflow-y') != 'auto' && !$parent.is('body')) {
+                $parent = $parent.parent();
+            }
+            return $parent;
         },
 
         slideW: function(targetW, $elem) {
@@ -407,17 +442,8 @@
 
                 //hTmp = outer != undefined && outer ? $this.outerHeight(true): $this.height();
 
-                if (outer != undefined && outer) {
-                    hTmp = $this.outerHeight(true);
-                    // hTmp = $this.height();
-                    // hTmp += parseFloat($this.css('padding-top') || 0);
-                    // hTmp += parseFloat($this.css('padding-bottom') || 0);
-                    // hTmp += parseFloat($this.css('border-top-height') || 0);
-                    // hTmp += parseFloat($this.css('border-bottom-height') || 0);
-                    // hTmp += parseFloat($this.css('margin-top') || 0);
-                    // hTmp += parseFloat($this.css('margin-bottom') || 0);
-                }
-                else { hTmp = $this.height(); }
+                if (outer != undefined && outer) hTmp = $this.outerHeight(true);
+                else hTmp = $this.height();
 
                 // console.log(hTmp + ' v ' + $this.outerHeight(true) );
 
