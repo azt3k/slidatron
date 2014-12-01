@@ -118,5 +118,7 @@ A boolean value that tells the plug to start the slideshow once it has initalise
 ## Todo
 
 - Adjust animation timing depening on drop point
-- translate y drag to scroll event
 - Provide a consistent interface for CSS vs jQuery easing
+- Update documentation
+- improve destroy behaviour
+- fix adaptive height fringe cases

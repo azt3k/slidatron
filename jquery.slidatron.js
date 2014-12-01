@@ -11,7 +11,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.2.10";
+    var pluginVersion = "0.2.11";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -21,6 +21,7 @@
         holdTime            : 9000,
         transitionTime      : 1500,
         translateY          : false,
+        drag                : true,
         onAfterInit         : null, // ($elem, this)
         onAfterMove         : null, // ($elem, this)
         onBeforeInit        : null, // ($elem, this)
@@ -213,74 +214,81 @@
                     _this.position = _this.curLeft();
 
                     // what are we closest to?
-                    var cur = _this.curLeft();
-                    var mod = Math.abs(cur % containerW);
-                    var mid = Math.abs(containerW / 2);
+                    var cur = _this.curLeft(),
+                        mod = Math.abs(cur % containerW),
+                        mid = Math.abs(containerW / 2),
+                        max = $slides.length - 1;
 
                     // calc some references
                     var goNext = mod > mid ? true : false ;
                     if (index == undefined) index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
+                    if (index > max) index = max;
 
                     // animate to location
                     _this.move(index, undefined, function() { _this.startShow(); });
 
                 };
 
-            // click handler
-            $slideWrapper.find('a').on('click', function(ev){
-                if (blockClick) ev.preventDefault();
-            });
 
-            // attach the drag event
-            $slideWrapper.on('mousedown touchstart', function(ev){
+            // drag support
+            if (options.drag) {
 
-                // init shared vars
-                blockClick = false;
+                // click handler
+                $slideWrapper.find('a').on('click', function(ev){
+                    if (blockClick) ev.preventDefault();
+                });
 
-                // init shared vars (translate specific)
-                if (options.translateY) {
-                    $scrollElem = _this.findScrollingParent($slideWrapper);
-                    refScrollPoint = $scrollElem.scrollTop();
-                }
+                // attach the drag event
+                $slideWrapper.on('mousedown touchstart', function(ev){
 
-                // stop the show once the mouse is pressed
-                _this.stopShow();
+                    // init shared vars
+                    blockClick = false;
 
-                // stop the animation
-                _this.stopAnimation();
+                    // init shared vars (translate specific)
+                    if (options.translateY) {
+                        $scrollElem = _this.findScrollingParent($slideWrapper);
+                        refScrollPoint = $scrollElem.scrollTop();
+                    }
 
-                // save the position
-                _this.position = _this.curLeft();
+                    // stop the show once the mouse is pressed
+                    _this.stopShow();
 
-            }).drag(function( ev, dd ){
+                    // stop the animation
+                    _this.stopAnimation();
 
-                // init vars
-                var xBlown  = false;
-                var yBlown  = false;
-                var c       = { x1 : -($slideWrapper.width() - containerW) , x2 : 0 };
-                var n       = parseFloat(_this.position) + parseFloat(dd.deltaX);
+                    // save the position
+                    _this.position = _this.curLeft();
 
-                // translate scroll
-                if (options.translateY) $scrollElem.scrollTop(refScrollPoint - dd.deltaY);
+                }).drag(function( ev, dd ){
 
-                // block if we we've blown the containment field
-                if (n < c.x1 || n > c.x2) xBlown = true;
+                    // init vars
+                    var xBlown  = false;
+                    var yBlown  = false;
+                    var c       = { x1 : -($slideWrapper.width() - containerW) , x2 : 0 };
+                    var n       = parseFloat(_this.position) + parseFloat(dd.deltaX);
 
-                // apply the css
-                if (!xBlown) $slideWrapper.css(_this.cssLeft(n));
+                    // translate scroll
+                    if (options.translateY) $scrollElem.scrollTop(refScrollPoint - dd.deltaY);
 
-            }).drag("end",function( ev, dd ){
+                    // block if we we've blown the containment field
+                    if (n < c.x1 || n > c.x2) xBlown = true;
 
-                // prevent a click from triggering if the delta exceeds the x threshold
-                blockClick = Math.abs(dd.deltaX) > 5;
+                    // apply the css
+                    if (!xBlown) $slideWrapper.css(_this.cssLeft(n));
 
-                // prevent a click from triggering if the delta exceeds the y threshold
-                if (options.translateY && !blockClick) blockClick = Math.abs(dd.deltaY) > 5;
+                }).drag("end",function( ev, dd ){
 
-                dragEnd();
+                    // prevent a click from triggering if the delta exceeds the x threshold
+                    blockClick = Math.abs(dd.deltaX) > 5;
 
-            }).css({ 'cursor' : 'move' }); // set the cursor to the "move" one
+                    // prevent a click from triggering if the delta exceeds the y threshold
+                    if (options.translateY && !blockClick) blockClick = Math.abs(dd.deltaY) > 5;
 
+                    dragEnd();
+
+                }).css({ 'cursor' : 'move' }); // set the cursor to the "move" one
+
+            }
 
             // resize callback
             $(window).resize(function() {
@@ -344,9 +352,6 @@
 
             });
 
-            // attach y-translation (touch only)
-            // this.touchScroll();
-
             // start show now that we have finished setting up
             this.startShow();
 
@@ -361,29 +366,6 @@
                 return true;
             } catch (e) {
                 return false;
-            }
-        },
-
-        touchScroll: function () {
-            if (this.hasTouch()) {
-                var scrollStartTop = 0,
-                    conf = this.settings,
-                    $scrollElem = this.findScrollingParent(this.slideWrapper),
-                    start = function(e) {
-                        console.log($scrollElem);
-                        scrollStartTop = $scrollElem.scrollTop() + e.originalEvent.touches[0].pageY;
-                        //event.preventDefault();
-                    },
-                    move = function(e) {
-                        $scrollElem.scrollTop(scrollStartTop - e.originalEvent.touches[0].pageY);
-                        //event.preventDefault();
-                    };
-
-                this.slideWrapper
-                    .off("touchstart.touchScroll")
-                    .on("touchstart.touchScroll", start)
-                    .off("touchmove.touchScroll")
-                    .on("touchmove.touchScroll", move);
             }
         },
 
