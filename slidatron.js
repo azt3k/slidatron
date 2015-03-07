@@ -5,13 +5,21 @@
  *  License: BSD
  */
 
-;(function ($, window, document, undefined) {
+;(function (factory) {
+
+    // AMD. Register as an anonymous module depending on jQuery.
+    if (typeof define === 'function' && define.amd) define('slidatron', ['jquery'], factory);
+
+    // No AMD. Register plugin with global jQuery object.
+    else factory(jQuery);
+
+}(function ($, undefined) {
 
     // use strict mode
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.2.12";
+    var pluginVersion = "0.3.0";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -696,5 +704,5 @@
         });
     };
 
-})(jQuery, window, document);
+}));
 

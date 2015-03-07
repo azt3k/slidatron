@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+
+<!--[if !IE]><!-->
+<html>
+<!--<![endif]-->
+<!--[if IE 6 ]><html lang="$ContentLocale" class="ie ie6"><![endif]-->
+<!--[if IE 7 ]><html lang="$ContentLocale" class="ie ie7"><![endif]-->
+<!--[if IE 8 ]><html lang="$ContentLocale" class="ie ie8"><![endif]-->
+
+    <head>
+
+        <title>Slidatron Demo</title>
+
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+        <style type="text/css">
+            .slidatron-wrap {
+                position: relative;
+                width: 800px;
+                margin: auto;
+            }
+            .st-prev, .st-next{
+                position: absolute;
+                display: block;
+                width: 20px;
+                right: -20px;
+                top: 0;
+                text-align: center;
+                background: #aaa;
+                height: 300px;
+                line-height: 300px;
+            }
+            .st-prev {
+                left: -20px;
+            }
+            .st-next{
+                right: -20px;
+            }
+            #container {
+                width: 800px;
+                height: 300px;
+                overflow: hidden;
+            }
+            #container div.slidatron-slide {
+                width: 800px;
+                height: 300px;
+                position: relative;
+            }
+            #container div.caption {
+                width: 100px;
+                height: 280px;
+                padding: 10px;
+                position: absolute;
+                right:0;
+                top: 0;
+                background: #eeeeee;
+                opacity: 0.9;
+            }
+            .st-prev, .st-next, .st-ctrl-wrapper a {
+                cursor: pointer;
+            }
+            .st-ctrl-wrapper {
+                text-align: center;
+            }
+            .st-ctrl-wrapper a {
+                display: inline-block;
+                margin: 5px;
+                width: 20px;
+                height: 20px;
+                background: #ccc;
+            }
+            .st-ctrl-wrapper a.current {
+                background: #666;
+            }
+        </style>
+        <script data-main="js/app" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.16/require.min.js"></script>
+    </head>
+    <body>
+
+        <div class="slidatron-wrap">
+            <div id="container">
+                <div>
+                    <img src="http://stevensegallery.com/800/300">
+                    <div class="caption">I am some <strong>html</strong></div>
+                </div>
+                <div>
+                    <img src="http://fillmurray.com/800/300">
+                    <div class="caption">I am some <em>other</em> html</div>
+                </div>
+                <div>
+                    <img src="http://www.placecage.com/c/800/300">
+                    <div class="caption">I am some <span>more</span> html</div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+
+</html>
