@@ -1,4 +1,8 @@
 #!/bin/bash
 
-OUTPUT=$(uglifyjs ../slidatron.js -m -r '$,require,define,exports')
-echo ";$OUTPUT" > ../slidatron.min.js
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd $DIR/..
+
+OUTPUT=$(node_modules/.bin/uglifyjs slidatron.js -m -r '$,require,define,exports')
+echo ";$OUTPUT" > slidatron.min.js

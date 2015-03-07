@@ -2,11 +2,13 @@
 
 if (( "$#" != 1 ))
 then
-    echo "Usage: ./release {version}"
+    echo "Usage: bin/release {version}"
 	exit 1
 fi
 
-./build
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+$DIR/build
 
 git add -A
 git commit -am "commit for release $1"

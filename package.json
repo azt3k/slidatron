@@ -1,6 +1,6 @@
 {
   "name": "slidatron",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "CSS / mobile friendly jQuery slider",
   "main": "jquery.slidatron.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "url": "git://github.com/azt3k/sliatron.git"
   },
   "devDependencies": {
-    "uglify-js": "2.4.15",
+    "uglify-js": "2.4.16",
     "connect": "3.3.4",
     "serve-static": "1.9.1"
   },
