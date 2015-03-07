@@ -15,6 +15,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
     <style type="text/css">
         .slidatron-wrap {
             position: relative;
@@ -50,7 +52,7 @@
         }
         #container div.caption {
             width: 100px;
-            height: 280px;
+            height: 300px;
             padding: 10px;
             position: absolute;
             right:0;
@@ -74,11 +76,15 @@
         .st-ctrl-wrapper a.current {
             background: #666;
         }
+        .container {
+            max-width:990px;
+            margin:auto;
+        }
     </style>
 
     <script type="text/javascript" language="javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" language="javascript" src="https://rawgit.com/GerHobbelt/jquery.threedubmedia/master/event.drag/jquery.event.drag.js"></script>
-    <script type="text/javascript" language="javascript" src="slidatron.js"></script>
+    <script type="text/javascript" language="javascript" src="../slidatron.js"></script>
 
     <script>
         $(document).ready(function(){
@@ -88,24 +94,36 @@
 
     </head>
     <body>
+        <div class="container">
 
-        <div class="slidatron-wrap">
-            <div id="container">
-                <div>
-                    <img src="http://stevensegallery.com/800/300">
-                    <div class="caption">I am some <strong>html</strong></div>
-                </div>
-                <div>
-                    <img src="http://fillmurray.com/800/300">
-                    <div class="caption">I am some <em>other</em> html</div>
-                </div>
-                <div>
-                    <img src="http://www.placecage.com/c/800/300">
-                    <div class="caption">I am some <span>more</span> html</div>
+            <h1>Slidatron Demo - Default</h1>
+
+            <div>
+                <a href="../index.html" class="back-btn btn btn-default">
+                    <span class="glyphicon glyphicon-arrow-left"></span> Back
+                </a>
+            </div><br>
+
+            <div class="slidatron-wrap">
+                <a href="../index.html" class="back-btn pull-right btn btn-default">
+                    <span class="glyphicon glyphicon-arrow-left"></span> Back
+                </a>
+                <div id="container">
+                    <div>
+                        <img src="http://stevensegallery.com/800/300">
+                        <div class="caption">I am some <strong>html</strong></div>
+                    </div>
+                    <div>
+                        <img src="http://fillmurray.com/800/300">
+                        <div class="caption">I am some <em>other</em> html</div>
+                    </div>
+                    <div>
+                        <img src="http://www.placecage.com/c/800/300">
+                        <div class="caption">I am some <span>more</span> html</div>
+                    </div>
                 </div>
             </div>
         </div>
-
     </body>
 
 </html>

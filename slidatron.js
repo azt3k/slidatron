@@ -5,7 +5,7 @@
  *  License: BSD
  */
 
-;(function (factory) {
+;(function (root, factory) {
 
     // AMD. Register as an anonymous module depending on jQuery.
     if (typeof define === 'function' && define.amd) define(['jquery'], factory);
@@ -16,13 +16,13 @@
     // Browser globals (root is window)
     else root.returnExports = factory(root.jQuery);
 
-}(function ($, undefined) {
+}(this, function ($, undefined) {
 
     // use strict mode
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.3.3";
+    var pluginVersion = "0.3.4";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
