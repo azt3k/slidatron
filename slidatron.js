@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.3.4";
+    var pluginVersion = "0.4.0";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -33,6 +33,7 @@
         transitionTime      : 1500,
         translateY          : false,
         drag                : true,
+        transition          : 'left', // transition identifier
         onAfterInit         : null, // ($elem, this)
         onAfterMove         : null, // ($elem, this)
         onBeforeInit        : null, // ($elem, this)
@@ -177,11 +178,11 @@
                 };
 
                 // manipulate the styles
-                $this.css(_this.cssLeft(i * containerW, {
-                    position    : 'absolute',
-                    top         : 0,
-                    width       : _this.slideW(containerW, $this),
-                }));
+                // $this.css(_this.trans().css(i * containerW, {
+                //     position    : 'absolute',
+                //     top         : 0,
+                //     width       : _this.slideW(containerW, $this),
+                // }));
 
                 // increment counter
                 i++;
@@ -210,10 +211,15 @@
                     .append($next)
                     .append($ctrlWrapper);
 
-            // initialise the position
+            // stash the references to the elems
             this.slideWrapper = $slideWrapper;
             this.container = $container;
-            this.position = this.curLeft();
+
+            // init the slides for the transition
+            this.trans().init();
+
+            // set the current position
+            this.position = this.trans().cur();
 
             // init shared vars for the drag etc
             var blockClick = false,
@@ -222,10 +228,10 @@
                 dragEnd = function(index) {
 
                     // save the position
-                    _this.position = _this.curLeft();
+                    _this.position = _this.trans().cur();
 
                     // what are we closest to?
-                    var cur = _this.curLeft(),
+                    var cur = _this.trans().cur(),
                         mod = Math.abs(cur % containerW),
                         mid = Math.abs(containerW / 2),
                         max = $slides.length - 1;
@@ -268,7 +274,7 @@
                     _this.stopAnimation();
 
                     // save the position
-                    _this.position = _this.curLeft();
+                    _this.position = _this.trans().cur();
 
                 }).drag(function( ev, dd ){
 
@@ -285,7 +291,7 @@
                     if (n < c.x1 || n > c.x2) xBlown = true;
 
                     // apply the css
-                    if (!xBlown) $slideWrapper.css(_this.cssLeft(n));
+                    if (!xBlown) $slideWrapper.css(_this.trans().css(n));
 
                 }).drag("end",function( ev, dd ){
 
@@ -352,7 +358,7 @@
                 $slides.each(function() {
 
                     // manipulate the styles
-                    $(this).css(_this.cssLeft(i * containerW, {width: containerW}));
+                    $(this).css(_this.trans().css(i * containerW, {width: containerW}));
 
                     // increment counter
                     i++;
@@ -477,43 +483,113 @@
             }
         },
 
-        isSameLeft: function(to, $elem) {
+        // we need to use call or something similar to bind the value of this
+        // in these transition funcs so they can be defined externally
+        trans: function() {
+            var _this = this,
+                trans = {
+                    left: {
+                        init: function() {
 
-            var left;
+                            var i = 0,
+                                containerW = _this.container.width();
 
-            if (this.accelerated) {
-                left = to['transform'].match(/(-?[0-9\.]+)/g);
-                if (left && typeof left == 'object') left = left[4];
-            } else {
-                left = to['left'];
-            }
+                            _this.slides.each(function() {
 
-            return left == this.curLeft($elem);
+                                var $this = $(this);
 
-        },
+                                // manipulate the styles
+                                $this.css(_this.trans().css(i * containerW, {
+                                    position    : 'absolute',
+                                    top         : 0,
+                                    width       : _this.slideW(containerW, $this),
+                                }));
 
-        cssLeft: function(left, obj) {
-            if (obj == undefined) obj = {};
-            this.accelerated ? obj['transform'] = 'matrix(1, 0, 0, 1, ' + left  + ', 0)' : obj['left'] = left;
-            return obj;
-        },
+                                // increment counter
+                                i++;
 
-        curLeft: function($elem) {
+                            });
+                        },
+                        isSame: function(to, $elem) {
 
-            var left;
+                            var left;
 
-            if ($elem == undefined) $elem = this.slideWrapper;
+                            if (_this.accelerated) {
+                                left = to['transform'].match(/(-?[0-9\.]+)/g);
+                                if (left && typeof left == 'object') left = left[4];
+                            } else {
+                                left = to['left'];
+                            }
 
-            if (this.accelerated) {
-                left = $elem.css('transform').match(/(-?[0-9\.]+)/g);
-                if (left && typeof left == 'object') left = left[4];
-            } else {
-                left = $elem.position().left;
-            }
+                            return left == _this.trans().cur($elem);
 
-            if (left == 'none' || !left) left = 0;
+                        },
+                        css: function(left, obj) {
+                            if (obj == undefined) obj = {};
+                            _this.accelerated ? obj['transform'] = 'matrix(1, 0, 0, 1, ' + left  + ', 0)' : obj['left'] = left;
+                            return obj;
+                        },
+                        cur: function($elem) {
 
-            return parseFloat(left);
+                            var left;
+
+                            if ($elem == undefined) $elem = _this.slideWrapper;
+
+                            if (_this.accelerated) {
+                                left = $elem.css('transform').match(/(-?[0-9\.]+)/g);
+                                if (left && typeof left == 'object') left = left[4];
+                            } else {
+                                left = $elem.position().left;
+                            }
+
+                            if (left == 'none' || !left) left = 0;
+
+                            return parseFloat(left);
+                        }
+                    },
+                    opacity: {
+                        init: function() {
+
+                            var i = 0,
+                                containerW = _this.container.width();
+
+                            _this.slides.each(function() {
+
+                                var $this = $(this);
+
+                                // manipulate the styles
+                                $this.css(_this.trans().css((i == 0 ? 1 : 0), {
+                                    position    : 'absolute',
+                                    top         : 0,
+                                    left        : 0,
+                                    width       : _this.slideW(containerW, $this),
+                                }));
+
+                                // increment counter
+                                i++;
+
+                            });
+                        },
+                        isSame: function(to, $elem) {
+                            var val = to['opacity'];
+                            return val == _this.trans().cur($elem);
+                        },
+                        css: function(val, obj) {
+                            if (obj == undefined) obj = {};
+                            obj['opacity'] = val;
+                            obj['z-index'] = val;
+                            return obj;
+                        },
+                        cur: function($elem) {
+                            var val;
+                            if ($elem == undefined) $elem = _this.slideWrapper;
+                            val = $elem.css('opacity');
+                            if (val == 'none' || !val) val = 0;
+                            return parseFloat(val);
+                        }
+                    }
+                };
+            return trans[this.options.transition];
         },
 
         supports: function(p) {
@@ -582,7 +658,7 @@
                 if (this.accelerated) {
                     this.slideWrapper
                         .off('transitionend.move webkitTransitionEnd.move oTransitionEnd.move otransitionend.move MSTransitionEnd.move')
-                        .css(this.cssLeft(this.curLeft(),{transition: 'transform 0s'}));
+                        .css(this.trans().css(this.trans().cur(),{transition: 'transform 0s'}));
                 } else {
                     this.slideWrapper.stop();
                 }
@@ -604,7 +680,7 @@
             var callback        = function(){
 
                 _this.moving    = false;
-                _this.position  = _this.curLeft();
+                _this.position  = _this.trans().cur();
                 _this.curIndex  = index;
 
                 // this is in here 3 times
@@ -631,7 +707,7 @@
             if (time == undefined) time = this.options.transitionTime;
 
             // generate the css
-            var to = this.cssLeft(next);
+            var to = this.trans().css(next);
 
             // stop any current animations
             this.stopAnimation();
@@ -640,7 +716,7 @@
             if (this.options.animationEngine == 'gsap') {
 
                 this.tweenHandle = TweenLite.fromTo($slideWrapper[0], time / 1000, {
-                    css: this.cssLeft(this.curLeft()),
+                    css: this.trans().css(this.trans().cur()),
                 },{
                     css: to,
                     ease: this.easing(),
@@ -666,7 +742,7 @@
             this.moving = true;
 
             // same? - then set moving to false as transition wont run
-            if (this.accelerated && this.options.animationEngine != 'gsap' && this.isSameLeft(to, $slideWrapper)) {
+            if (this.accelerated && this.options.animationEngine != 'gsap' && this.trans().isSame(to, $slideWrapper)) {
                 this.moving = false;
             }
 
@@ -708,4 +784,3 @@
     };
 
 }));
-
