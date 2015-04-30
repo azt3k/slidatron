@@ -9,6 +9,7 @@ fi
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 $DIR/build
+cd $DIR/..
 
 git add -A
 git commit -am "commit for release $1"
