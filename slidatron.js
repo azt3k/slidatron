@@ -22,15 +22,15 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.1";
+    var pluginVersion = "0.4.2";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
         easing              : null,
         slideSelector       : null,
         classNameSpace      : "slidatron",
-        holdTime            : 9000,
-        transitionTime      : 1500,
+        holdTime            : 10000,
+        transitionTime      : 1000,
         translateY          : false,
         cursor              : 'move',
         drag                : true,
@@ -226,18 +226,22 @@
                     _this.position = _this.trans().cur();
 
                     // Im not sure this is necessary
-                    var max = $slides.length - 1;
+                    // var max = $slides.length - 1,
 
-                    // init something
-                    var fromIndex = undefined;
+                    // get stuff
+                    var fromIndex = undefined,
+                        $fromElem = _this.trans().dragFromElem() || [null],
+                        $curElem  = _this.trans().curElem() || [null];
 
                     // calc some references
                     if (index == undefined) index = _this.trans().calcDragEndIndex();
-                    if (index > max) index = max;
+                    // if (index > max) index = max;
 
                     // is what we are dragging from not the current elem?
-                    if (_this.trans().dragFromElem()[0] != _this.trans().curElem()[0])
-                        fromIndex = _this.slides.index(_this.trans().dragFromElem());
+                    if ($fromElem[0] != $curElem[0])
+                        fromIndex = _this.slides.index($fromElem);
+
+                    // console.log('from:' + fromIndex + ' to:' + index + ' pos:' + _this.position) ;
 
                     // animate to location
                     _this.move(index, fromIndex, undefined, function() { _this.startShow(); });
@@ -274,6 +278,10 @@
                     // save the position
                     _this.position = _this.trans().cur();
 
+                }).on('mouseup touchend', function(ev){
+
+                    dragEnd();
+
                 }).drag(function( ev, dd ){
 
                     // translate scroll
@@ -308,16 +316,16 @@
 
                 // adaptive height
                 if (options.adaptiveHeight) {
+
+                    // callback
                     if (typeof options.onBeforeAdaptHeight == 'function') options.onBeforeAdaptHeight($(_this.element), _this);
 
                     // reset
                     $slides.css({height: '', width: ''});
                     $slideWrapper.css({width: '', height: ''});
 
-                    // set width - dupe
-                    $container.css({ width: containerW });
-                    $slides.each(function() { $(this).css({ width: _this.slideW(containerW, $(this)) }); });
-                    $slideWrapper.css({ width: $slides.length * containerW });
+                    // fire resize handler
+                    _this.trans().resizeHandler();
 
                     // measure
                     var outerMaxH = _this.maxH($slides, true);
@@ -326,33 +334,20 @@
                     $slideWrapper.css({height: outerMaxH});
                     $container.css({height: $slideWrapper.outerHeight(true)});
 
-                    // measure
-                    // var maxH = _this.maxH($slides);
-                    // $slides.css({height: maxH});
-
+                    // callback
                     if (typeof options.onAfterAdaptHeight == 'function') options.onAfterAdaptHeight($(_this.element), _this);
                 }
                 else {
 
-                    // set width - dupe
-                    $container.css({ width: containerW });
-                    $slides.each(function() { $(this).css({ width: _this.slideW(containerW, $(this)) }); });
-                    $slideWrapper.css({ width: $slides.length * containerW });
+                    // fire resize handler
+                    _this.trans().resizeHandler();
 
                 }
 
                 // process slides
-                var i = 0;
-                $slides.each(function() {
+                _this.trans().resizeSlideHandler();
 
-                    // manipulate the styles
-                    $(this).css(_this.trans().css(i * containerW, {width: containerW}));
-
-                    // increment counter
-                    i++;
-
-                });
-
+                // trigger the drag end bizzo
                 dragEnd(_this.curIndex);
 
             });
@@ -379,7 +374,7 @@
             while ($parent && $parent.css('overflow-y') != 'scroll' && $parent.css('overflow-y') != 'auto' && !$parent.is('body')) {
                 $parent = $parent.parent();
             }
-            return $parent;
+            return $parent.is('body') ? $('html, body') : $parent;
         },
 
         slideW: function(targetW, $elem) {
@@ -498,6 +493,27 @@
 
                             _this.slideWrapper.width(_this.slides.length * containerW);
 
+                        },
+                        resizeHandler: function() {
+                            var containerW = _this.container.parent().width();
+                            _this.container.css({ width: containerW });
+                            _this.slides.each(function() { $(this).css({ width: _this.slideW(containerW, $(this)) }); });
+                            _this.slideWrapper.css({ width: _this.slides.length * containerW });
+                        },
+                        resizeSlideHandler: function() {
+
+                            var i = 0,
+                                containerW = _this.container.parent().width();
+
+                            _this.slides.each(function() {
+
+                                // manipulate the styles
+                                $(this).css(_this.trans().css(i * containerW, {width: containerW}));
+
+                                // increment counter
+                                i++;
+
+                            });
                         },
                         dragHandler: function(delta) {
 
@@ -621,34 +637,47 @@
                             _this.slideWrapper.width( containerW);
 
                         },
+                        resizeHandler: function() {
+                            var containerW = _this.container.parent().width();
+                            _this.container.css({ width: containerW });
+                            _this.slides.each(function() { $(this).css({ width: _this.slideW(containerW, $(this)) }); });
+                        },
+                        resizeSlideHandler: function() {
+                            // nothing to do
+                        },
                         dragHandler: function(delta) {
 
-                            var width = _this.container.width(),
-                                delta = parseFloat(delta) / parseFloat(width),
-                                $cur  = _this.trans().curElem(),
+                            var $cur  = _this.trans().curElem(),
                                 $prev = _this.trans().prevElem(),
-                                $next = _this.trans().nextElem();
+                                $next = _this.trans().nextElem(),
+                                width = _this.container.width(),
+                                delta = (parseFloat(delta) / parseFloat(width)),
+                                val   = delta + (1 - _this.position),
+                                val   = val > 1  ?  1 : val,
+                                val   = val < -1 ? -1 : val;
+
+                            // console.log(delta + ' | ' + val + ' | ' + _this.slides.index(_this.trans().curElem()));
 
                             // next
                             if (delta < 0) {
 
-                                $next.css(_this.trans().css(Math.abs(delta)));
-                                $cur.css(_this.trans().css(1 - Math.abs(delta)));
+                                $next.css(_this.trans().css(Math.abs(val)));
+                                $cur.css(_this.trans().css(1 - Math.abs(val)));
 
                                 if ($prev[0] != $next[0]) $prev.css(_this.trans().css(0));
 
-                                _this.dragFrom = Math.abs(delta) < 0.5 ? $next : $cur;
-                                _this.dragTo = Math.abs(delta) < 0.5 ? $cur : $next;
+                                _this.dragFrom = Math.abs(val) < 0.5 ? $next : $cur;
+                                _this.dragTo = Math.abs(val) < 0.5 ? $cur : $next;
 
                             } else {
 
-                                $prev.css(_this.trans().css(delta));
-                                $cur.css(_this.trans().css(1 - delta));
+                                $prev.css(_this.trans().css(val));
+                                $cur.css(_this.trans().css(1 - val));
 
                                 if ($prev[0] != $next[0]) $next.css(_this.trans().css(0));
 
-                                _this.dragFrom = delta < 0.5 ? $prev : $cur;
-                                _this.dragTo = delta < 0.5 ? $cur : $prev;
+                                _this.dragFrom = val < 0.5 ? $prev : $cur;
+                                _this.dragTo = val < 0.5 ? $cur : $prev;
                             }
 
                         },
@@ -800,7 +829,7 @@
                             // this is a bit weird - we prob need a register of elems animating
                             handle
                                 .off('transitionend.move webkitTransitionEnd.move oTransitionEnd.move otransitionend.move MSTransitionEnd.move')
-                                .css(this.trans().css(this.trans().cur(),{transition: this.trans().transitionProp() + ' 0s'}));
+                                .css(this.trans().css(this.trans().cur(handle),{transition: this.trans().transitionProp() + ' 0s'}));
                         } else {
                             handle
                                 .stop();
