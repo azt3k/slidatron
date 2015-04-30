@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.2";
+    var pluginVersion = "0.4.3";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -226,7 +226,7 @@
                     _this.position = _this.trans().cur();
 
                     // Im not sure this is necessary
-                    // var max = $slides.length - 1,
+                    // var max = $slides.length - 1;
 
                     // get stuff
                     var fromIndex = undefined,
@@ -652,22 +652,23 @@
                                 $next = _this.trans().nextElem(),
                                 width = _this.container.width(),
                                 delta = (parseFloat(delta) / parseFloat(width)),
-                                val   = delta + (1 - _this.position),
-                                val   = val > 1  ?  1 : val,
-                                val   = val < -1 ? -1 : val;
+                                val   = Math.abs(delta + (1 - _this.position)),
+                                val   = val > 1 ? 1 : val,
+                                val   = val < 0 ? 0 : val;
 
-                            // console.log(delta + ' | ' + val + ' | ' + _this.slides.index(_this.trans().curElem()));
+                            console.log(delta + ' | ' + val + ' | '  + _this.position + ' | ' + _this.slides.index(_this.trans().curElem()));
 
                             // next
                             if (delta < 0) {
 
-                                $next.css(_this.trans().css(Math.abs(val)));
-                                $cur.css(_this.trans().css(1 - Math.abs(val)));
+                                // such problems when _this.position = 1
+                                $next.css(_this.trans().css(val));
+                                $cur.css(_this.trans().css(1 - val));
 
                                 if ($prev[0] != $next[0]) $prev.css(_this.trans().css(0));
 
-                                _this.dragFrom = Math.abs(val) < 0.5 ? $next : $cur;
-                                _this.dragTo = Math.abs(val) < 0.5 ? $cur : $next;
+                                _this.dragFrom = val < 0.5 ? $next : $cur;
+                                _this.dragTo = val < 0.5 ? $cur : $next;
 
                             } else {
 
@@ -934,7 +935,7 @@
             // same? - then set moving to false as transition wont run
             if (this.accelerated && this.options.animationEngine != 'gsap' && this.trans().isSame(to, $elem)) {
                 this.moving = false;
-                // callback(); // hmm
+                callback(); // hmm
             }
         },
 
