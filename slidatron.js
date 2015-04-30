@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.0";
+    var pluginVersion = "0.4.1";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -179,13 +179,6 @@
                     slide   : $this
                 };
 
-                // manipulate the styles
-                // $this.css(_this.trans().css(i * containerW, {
-                //     position    : 'absolute',
-                //     top         : 0,
-                //     width       : _this.slideW(containerW, $this),
-                // }));
-
                 // increment counter
                 i++;
 
@@ -243,7 +236,7 @@
                     if (index > max) index = max;
 
                     // is what we are dragging from not the current elem?
-                    if (_this.trans().dragFromElem() != _this.trans().curElem())
+                    if (_this.trans().dragFromElem()[0] != _this.trans().curElem()[0])
                         fromIndex = _this.slides.index(_this.trans().dragFromElem());
 
                     // animate to location
@@ -632,21 +625,28 @@
 
                             var width = _this.container.width(),
                                 delta = parseFloat(delta) / parseFloat(width),
-                                $cur  = _this.trans().curElem(true),
-                                $prev = _this.trans().prevElem(true),
-                                $next = _this.trans().nextElem(true);
+                                $cur  = _this.trans().curElem(),
+                                $prev = _this.trans().prevElem(),
+                                $next = _this.trans().nextElem();
 
                             // next
                             if (delta < 0) {
+
                                 $next.css(_this.trans().css(Math.abs(delta)));
                                 $cur.css(_this.trans().css(1 - Math.abs(delta)));
-                                $prev.css(_this.trans().css(0));
+
+                                if ($prev[0] != $next[0]) $prev.css(_this.trans().css(0));
+
                                 _this.dragFrom = Math.abs(delta) < 0.5 ? $next : $cur;
                                 _this.dragTo = Math.abs(delta) < 0.5 ? $cur : $next;
+
                             } else {
+
                                 $prev.css(_this.trans().css(delta));
                                 $cur.css(_this.trans().css(1 - delta));
-                                $next.css(_this.trans().css(0));
+
+                                if ($prev[0] != $next[0]) $next.css(_this.trans().css(0));
+
                                 _this.dragFrom = delta < 0.5 ? $prev : $cur;
                                 _this.dragTo = delta < 0.5 ? $cur : $prev;
                             }
@@ -663,10 +663,11 @@
                                 next  = _this.trans().cur($next),
                                 to = undefined;
 
-                            if (cur > prev && cur > next)  to = _this.slides.index($cur);
-                            if (prev > cur && prev > next) to = _this.slides.index($prev);
-                            if (next > cur && next > prev) to = _this.slides.index($next);
-                            if (to === undefined)          to = _this.slides.index($cur);
+                            // >= in the later 2 cases gets around the cases where next and prev are the same elem
+                            if (cur > prev && cur > next)   to = _this.slides.index($cur);
+                            if (prev > cur && prev >= next) to = _this.slides.index($prev);
+                            if (next > cur && next >= prev) to = _this.slides.index($next);
+                            if (to === undefined)           to = _this.slides.index($cur);
 
                             return to;
 
@@ -859,7 +860,7 @@
                 this.doAnimation($nextElem, this.trans().css(next), 'next', time, callback);
 
             // animate to off state
-            if (prev!==false && $nextElem != $curElem)
+            if (prev!==false && $nextElem[0] != $curElem[0])
                 this.doAnimation($curElem, this.trans().css(prev), 'prev', time, callback);
 
         },
