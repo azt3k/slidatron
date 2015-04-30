@@ -122,3 +122,4 @@ A boolean value that tells the plug to start the slideshow once it has initalise
 - Update documentation
 - improve destroy behaviour
 - fix adaptive height fringe cases
+- fix translateY fringe cases

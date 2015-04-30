@@ -32,6 +32,7 @@
         holdTime            : 9000,
         transitionTime      : 1500,
         translateY          : false,
+        cursor              : 'move',
         drag                : true,
         transition          : 'left', // transition identifier
         onAfterInit         : null, // ($elem, this)
@@ -73,11 +74,13 @@
         slideWrapper: null,
         container: null,
         timeoutHandle: null,
-        tweenHandle: null,
+        tweenHandle: {},
         moving: false,
         accelerated: false,
         $original: null,
         originalHTML: null,
+        dragFrom: null,
+        dragTo: null,
         init: function () {
 
             //save a copy for later
@@ -109,8 +112,7 @@
             var $slideWrapper   =   $('<div class="' + options.classNameSpace + '-slide-wrapper st-slide-wrapper"></div>').css({
                                         position    : 'absolute',
                                         top         : 0,
-                                        left        : 0,
-                                        width       : $slides.length * containerW
+                                        left        : 0
                                     });
             var $ctrlWrapper    =   $('<div class="' + options.classNameSpace + '-ctrl-wrapper st-ctrl-wrapper"></div>');
             var $next           =   $('<a class="' + options.classNameSpace + '-next st-next">&gt;</a>').on('tap, click', function(e) {
@@ -230,19 +232,22 @@
                     // save the position
                     _this.position = _this.trans().cur();
 
-                    // what are we closest to?
-                    var cur = _this.trans().cur(),
-                        mod = Math.abs(cur % containerW),
-                        mid = Math.abs(containerW / 2),
-                        max = $slides.length - 1;
+                    // Im not sure this is necessary
+                    var max = $slides.length - 1;
+
+                    // init something
+                    var fromIndex = undefined;
 
                     // calc some references
-                    var goNext = mod > mid ? true : false ;
-                    if (index == undefined) index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
+                    if (index == undefined) index = _this.trans().calcDragEndIndex();
                     if (index > max) index = max;
 
+                    // is what we are dragging from not the current elem?
+                    if (_this.trans().dragFromElem() != _this.trans().curElem())
+                        fromIndex = _this.slides.index(_this.trans().dragFromElem());
+
                     // animate to location
-                    _this.move(index, undefined, function() { _this.startShow(); });
+                    _this.move(index, fromIndex, undefined, function() { _this.startShow(); });
 
                 };
 
@@ -278,20 +283,11 @@
 
                 }).drag(function( ev, dd ){
 
-                    // init vars
-                    var xBlown  = false;
-                    var yBlown  = false;
-                    var c       = { x1 : -($slideWrapper.width() - containerW) , x2 : 0 };
-                    var n       = parseFloat(_this.position) + parseFloat(dd.deltaX);
-
                     // translate scroll
                     if (options.translateY) $scrollElem.scrollTop(refScrollPoint - dd.deltaY);
 
-                    // block if we we've blown the containment field
-                    if (n < c.x1 || n > c.x2) xBlown = true;
-
-                    // apply the css
-                    if (!xBlown) $slideWrapper.css(_this.trans().css(n));
+                    // handle the drag
+                    _this.trans().dragHandler(dd.deltaX);
 
                 }).drag("end",function( ev, dd ){
 
@@ -303,7 +299,7 @@
 
                     dragEnd();
 
-                }).css({ 'cursor' : 'move' }); // set the cursor to the "move" one
+                }).css({ 'cursor' : this.options.cursor }); // set the cursor to the "move" one
 
             }
 
@@ -334,7 +330,6 @@
                     var outerMaxH = _this.maxH($slides, true);
 
                     // apply
-                    // console.log('fuck: ' + outerMaxH);
                     $slideWrapper.css({height: outerMaxH});
                     $container.css({height: $slideWrapper.outerHeight(true)});
 
@@ -444,8 +439,6 @@
                 if (outer != undefined && outer) hTmp = $this.outerHeight(true);
                 else hTmp = $this.height();
 
-                // console.log(hTmp + ' v ' + $this.outerHeight(true) );
-
                 if (h < hTmp) h = hTmp;
             });
 
@@ -509,6 +502,68 @@
                                 i++;
 
                             });
+
+                            _this.slideWrapper.width(_this.slides.length * containerW);
+
+                        },
+                        dragHandler: function(delta) {
+
+                            var xBlown = false,
+                                c      = { x1 : -(_this.slideWrapper.width() - _this.container.width()) , x2 : 0 },
+                                n      = parseFloat(_this.position) + parseFloat(delta);
+
+                            // block if we we've blown the containment field
+                            if (n < c.x1 || n > c.x2) xBlown = true;
+
+                            // apply the css
+                            if (!xBlown) _this.slideWrapper.css(_this.trans().css(n));
+
+                        },
+                        calcDragEndIndex: function() {
+
+                            // what are we closest to?
+                            var cur = _this.trans().cur(),
+                                containerW = _this.container.width(),
+                                mod = Math.abs(cur % containerW),
+                                mid = Math.abs(containerW / 2),
+                                max = _this.slides.length - 1;
+
+                            // calc some references
+                            var goNext = mod > mid ? true : false ;
+                            var index = Math.abs(goNext ? Math.floor(cur/containerW) : Math.ceil(cur/containerW));
+                            if (index > max) index = max;
+
+                            return index;
+
+                        },
+                        getStateForNext: function(index) {
+                            var target = -(index * _this.container.width());
+                            var next   = target > (_this.slides.length - 1) ? 0 : target;
+                            return next;
+                        },
+                        getStateForPrev: function(index) {
+                            return false;
+                        },
+                        transitionProp: function() {
+                            return _this.accelerated ? 'transform' : 'left';
+                        },
+                        dragFromElem: function() {
+                            return _this.slideWrapper;
+                        },
+                        dragToElem: function() {
+                            return _this.slideWrapper;
+                        },
+                        getElemAt: function(index) {
+                            return _this.slideWrapper;
+                        },
+                        nextElem: function() {
+                            return _this.slideWrapper;
+                        },
+                        curElem: function() {
+                            return _this.slideWrapper;
+                        },
+                        prevElem: function() {
+                            return _this.slideWrapper;
                         },
                         isSame: function(to, $elem) {
 
@@ -569,10 +624,89 @@
                                 i++;
 
                             });
+
+                            _this.slideWrapper.width( containerW);
+
+                        },
+                        dragHandler: function(delta) {
+
+                            var width = _this.container.width(),
+                                delta = parseFloat(delta) / parseFloat(width),
+                                $cur  = _this.trans().curElem(true),
+                                $prev = _this.trans().prevElem(true),
+                                $next = _this.trans().nextElem(true);
+
+                            // next
+                            if (delta < 0) {
+                                $next.css(_this.trans().css(Math.abs(delta)));
+                                $cur.css(_this.trans().css(1 - Math.abs(delta)));
+                                $prev.css(_this.trans().css(0));
+                                _this.dragFrom = Math.abs(delta) < 0.5 ? $next : $cur;
+                                _this.dragTo = Math.abs(delta) < 0.5 ? $cur : $next;
+                            } else {
+                                $prev.css(_this.trans().css(delta));
+                                $cur.css(_this.trans().css(1 - delta));
+                                $next.css(_this.trans().css(0));
+                                _this.dragFrom = delta < 0.5 ? $prev : $cur;
+                                _this.dragTo = delta < 0.5 ? $cur : $prev;
+                            }
+
+                        },
+                        calcDragEndIndex: function() {
+
+                            // what are we closest to?
+                            var $cur  = _this.trans().curElem(),
+                                cur   = _this.trans().cur($cur),
+                                $prev = _this.trans().prevElem(),
+                                prev  = _this.trans().cur($prev),
+                                $next = _this.trans().nextElem(),
+                                next  = _this.trans().cur($next),
+                                to = undefined;
+
+                            if (cur > prev && cur > next)  to = _this.slides.index($cur);
+                            if (prev > cur && prev > next) to = _this.slides.index($prev);
+                            if (next > cur && next > prev) to = _this.slides.index($next);
+                            if (to === undefined)          to = _this.slides.index($cur);
+
+                            return to;
+
                         },
                         isSame: function(to, $elem) {
                             var val = to['opacity'];
                             return val == _this.trans().cur($elem);
+                        },
+                        getStateForNext: function(index) {
+                            return 1;
+                        },
+                        getStateForPrev: function(index) {
+                            return 0;
+                        },
+                        transitionProp: function() {
+                            return 'opacity';
+                        },
+                        getElemAt: function(index) {
+                            return $(_this.slides[index]);
+                        },
+                        dragFromElem: function() {
+                            return _this.dragFrom;
+                        },
+                        dragToElem: function() {
+                            return _this.dragTo;
+                        },
+                        nextElem: function() {
+                            var $next = _this.trans().curElem().next();
+                            if (!$next.length) $next = _this.slides.first()
+                            return $next;
+                        },
+                        curElem: function(noDragFrom) {
+                            var $cur = _this.slides.filter('.current');
+                            if (!$cur.length) $cur = _this.slides.first();
+                            return $cur;
+                        },
+                        prevElem: function(noDragTo) {
+                            var $prev = _this.trans().curElem().prev();
+                            if (!$prev.length) $prev = _this.slides.last();
+                            return $prev;
                         },
                         css: function(val, obj) {
                             if (obj == undefined) obj = {};
@@ -582,7 +716,7 @@
                         },
                         cur: function($elem) {
                             var val;
-                            if ($elem == undefined) $elem = _this.slideWrapper;
+                            if ($elem == undefined) $elem = _this.trans().curElem()
                             val = $elem.css('opacity');
                             if (val == 'none' || !val) val = 0;
                             return parseFloat(val);
@@ -651,16 +785,26 @@
             clearTimeout(this.timeoutHandle);
         },
 
-        stopAnimation: function() {
-            if (this.options.animationEngine == 'gsap') {
-                if (this.tweenHandle) this.tweenHandle.kill();
-            } else {
-                if (this.accelerated) {
-                    this.slideWrapper
-                        .off('transitionend.move webkitTransitionEnd.move oTransitionEnd.move otransitionend.move MSTransitionEnd.move')
-                        .css(this.trans().css(this.trans().cur(),{transition: 'transform 0s'}));
-                } else {
-                    this.slideWrapper.stop();
+        stopAnimation: function(id) {
+
+            var anis = id != undefined ? {id: id} : this.tweenHandle;
+
+            for (var i in anis) {
+                var handle = this.tweenHandle[i];
+                    if (handle) {
+                    if (this.options.animationEngine == 'gsap') {
+                        if (handle != undefined) handle.kill();
+                    } else {
+                        if (this.accelerated) {
+                            // this is a bit weird - we prob need a register of elems animating
+                            handle
+                                .off('transitionend.move webkitTransitionEnd.move oTransitionEnd.move otransitionend.move MSTransitionEnd.move')
+                                .css(this.trans().css(this.trans().cur(),{transition: this.trans().transitionProp() + ' 0s'}));
+                        } else {
+                            handle
+                                .stop();
+                        }
+                    }
                 }
             }
         },
@@ -670,27 +814,28 @@
             this.move(next);
         },
 
-        move: function(index, time, cb) {
+        move: function(indexTo, indexFrom, time, cb) {
 
             var _this           = this;
-            var $slideWrapper   = this.slideWrapper;
+            var $curElem        = indexFrom == undefined ? this.trans().curElem() : this.trans().getElemAt(indexFrom);
+            var $nextElem       = this.trans().getElemAt(indexTo);
             var $container      = this.container;
-            var target          = -(index * $container.width());
-            var next            = (target) > (this.slides.length - 1) ? 0 : target ;
+            var next            = this.trans().getStateForNext(indexTo);
+            var prev            = this.trans().getStateForPrev(indexTo);
             var callback        = function(){
 
                 _this.moving    = false;
                 _this.position  = _this.trans().cur();
-                _this.curIndex  = index;
+                _this.curIndex  = indexTo;
 
                 // this is in here 3 times
-                var ids = _this.generateIndentifiers(index);
+                var ids = _this.generateIndentifiers(indexTo);
                 $('.' + _this.options.classNameSpace + '-ctrl-wrapper a').removeClass('current');
                 $('#' + ids.ctrlId).addClass('current');
 
                 // add the curret class to the current slide
                 $('.' + _this.options.classNameSpace + '-slide').removeClass('current');
-                $('.' + _this.options.classNameSpace + '-slide-' + index).addClass('current');
+                $('.' + _this.options.classNameSpace + '-slide-' + indexTo).addClass('current');
 
                 // run the post
                 if (typeof _this.options.onAfterMove == 'function') _this.options.onAfterMove($(_this.element), _this);
@@ -709,13 +854,25 @@
             // generate the css
             var to = this.trans().css(next);
 
+            // animate to on state
+            if (next!==false)
+                this.doAnimation($nextElem, this.trans().css(next), 'next', time, callback);
+
+            // animate to off state
+            if (prev!==false && $nextElem != $curElem)
+                this.doAnimation($curElem, this.trans().css(prev), 'prev', time, callback);
+
+        },
+
+        doAnimation: function($elem, to, id, time, callback) {
+
             // stop any current animations
-            this.stopAnimation();
+            this.stopAnimation(id);
 
             // do the animation
             if (this.options.animationEngine == 'gsap') {
 
-                this.tweenHandle = TweenLite.fromTo($slideWrapper[0], time / 1000, {
+                this.tweenHandle[id] = TweenLite.fromTo($elem[0], time / 1000, {
                     css: this.trans().css(this.trans().cur()),
                 },{
                     css: to,
@@ -727,25 +884,28 @@
 
                 if (this.accelerated) {
 
-                    $slideWrapper
+                    $elem
                         .one('transitionend.move webkitTransitionEnd.move oTransitionEnd.move otransitionend.move MSTransitionEnd.move', callback)
-                        .css({transition: 'transform ' + time / 1000 + 's ' + this.easing()})
+                        .css({transition: this.trans().transitionProp() + ' ' + time / 1000 + 's ' + this.easing()})
                         .css(to);
 
                 } else {
-                    $slideWrapper.animate(to, time, this.easing(), callback);
+                    $elem.animate(to, time, this.easing(), callback);
                 }
+
+                this.tweenHandle[id] = $elem;
 
             }
 
             // stores the moving state
+            // this might get wierd with multiple animations
             this.moving = true;
 
             // same? - then set moving to false as transition wont run
-            if (this.accelerated && this.options.animationEngine != 'gsap' && this.trans().isSame(to, $slideWrapper)) {
+            if (this.accelerated && this.options.animationEngine != 'gsap' && this.trans().isSame(to, $elem)) {
                 this.moving = false;
+                // callback(); // hmm
             }
-
         },
 
         destroy: function() {
