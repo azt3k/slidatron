@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.3";
+    var pluginVersion = "0.4.4";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -656,7 +656,7 @@
                                 val   = val > 1 ? 1 : val,
                                 val   = val < 0 ? 0 : val;
 
-                            console.log(delta + ' | ' + val + ' | '  + _this.position + ' | ' + _this.slides.index(_this.trans().curElem()));
+                            // console.log(delta + ' | ' + val + ' | '  + _this.position + ' | ' + _this.slides.index(_this.trans().curElem()));
 
                             // next
                             if (delta < 0) {
