@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.4";
+    var pluginVersion = "0.4.5";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -305,7 +305,7 @@
             }
 
             // resize callback
-            $(window).resize(function() {
+            $(window).on('resize.slidatron', function() {
 
                 // fush the current width from the container so it doesn't fuck our measurement
                 _this.stopAnimation();
@@ -941,8 +941,11 @@
 
         destroy: function() {
             var $replacement = $(this.originalHTML);
+            this.stopShow();
+            this.stopAnimation();
             this.slideWrapper.after($replacement);
             this.slideWrapper.remove();
+            $(window).off('resize.slidatron');
             $('.' + this.options.classNameSpace + '-container').remove();
             $('.' + this.options.classNameSpace + '-ctrl-wrapper').remove();
             $('.' + this.options.classNameSpace + '-next').remove();
@@ -957,8 +960,9 @@
         var self = this;
         return this.each(function (idx) {
             if (!$.data(this, "plugin_" + pluginName)) {
+
                 $.data(this, "plugin_" + pluginName, new Plugin(this, options));
-            } else {
+
                 if (options == 'destroy'){
 
                     var plugin = $.data(this, "plugin_" + pluginName);
