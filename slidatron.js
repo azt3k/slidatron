@@ -598,6 +598,7 @@
                             var left;
 
                             if ($elem == undefined) $elem = _this.slideWrapper;
+                            if (!$elem.length) return 0;
 
                             if (_this.accelerated) {
                                 left = $elem.css('transform').match(/(-?[0-9\.]+)/g);
