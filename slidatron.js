@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.5";
+    var pluginVersion = "0.4.7";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null, // gsap or jquery / css
@@ -804,12 +804,13 @@
                     _this.timeoutCallback();
                 }, this.options.holdTime);
 
-                // add current to the first index
-                if (!$('.' + this.options.classNameSpace + '-ctrl-wrapper a.current').length) {
-                    var ids = this.generateIndentifiers(0);
-                    $('.' + this.options.classNameSpace + '-ctrl-wrapper a').removeClass('current');
-                    $('#' + ids.ctrlId).addClass('current');
-                }
+            }
+
+            // add current to the first index
+            if (!$('.' + this.options.classNameSpace + '-ctrl-wrapper a.current').length) {
+                var ids = this.generateIndentifiers(0);
+                $('.' + this.options.classNameSpace + '-ctrl-wrapper a').removeClass('current');
+                $('#' + ids.ctrlId).addClass('current');
             }
         },
 
