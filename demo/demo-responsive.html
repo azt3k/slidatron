@@ -14,6 +14,7 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
 
@@ -72,9 +73,14 @@
             width: 20px;
             height: 20px;
             background: #ccc;
+            transition: background 1s;
         }
+        .st-ctrl-wrapper a.slidatron-transitioning-to,
         .st-ctrl-wrapper a.current {
             background: #666;
+        }
+        .st-ctrl-wrapper a.slidatron-transitioning-from {
+            background: #ccc;
         }
         .container {
             max-width:990px;
@@ -88,7 +94,9 @@
 
     <script>
         $(document).ready(function(){
-            $('#container').slidatron();
+            $('#container').slidatron({
+                translateY: true
+            });
         });
     </script>
 

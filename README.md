@@ -28,18 +28,25 @@ For an example see `demo/demo.html`
 
 ````json
 {
-    animationEngine : null,
-    easing          : null,
-    slideSelector   : null,
-    classNameSpace  : "slidatron",
-    holdTime        : 9000,
-    transitionTime  : 1500,
-    onAfterInit     : null,
-    onAfterMove     : null,
-    onBeforeInit    : null,
-    onBeforeMove    : null,
-    autoSlide       : true
-}
+    animationEngine     : null,     // gsap or jquery / css
+    easing              : null,
+    slideSelector       : null,
+    classNameSpace      : 'slidatron',
+    holdTime            : 10000,
+    transitionTime      : 1000,
+    translateY          : false,
+    cursor              : 'move',
+    drag                : true,     // true / false / 'touch'
+    transition          : 'left',   // transition identifier ('left' or 'fade')
+    onAfterInit         : null,     // ($elem, this)
+    onAfterMove         : null,     // ($elem, this)
+    onBeforeInit        : null,     // ($elem, this)
+    onBeforeMove        : null,     // ($elem, this)
+    autoSlide           : true,
+    adaptiveHeight      : false,
+    onBeforeAdaptHeight : null,     // ($elem, this)
+    onAfterAdaptHeight  : null      // ($elem, this)
+};
 ````
 
 ### Option Details
@@ -91,6 +98,23 @@ The hold time in ms for each slide
 How long it takes in ms to move from one slide to the next one
 
 
+#### translateY
+
+Translate vertical drag to scroll
+
+
+#### drag
+
+`true` - use drag
+`false` - don't use drag
+`'touch'` only use drag on touch devices
+
+
+#### transition
+
+Transition type - `'left'` or `'fade'`
+
+
 #### onAfterInit
 
 A call back function to run after the plugin has initialised
@@ -110,9 +134,15 @@ A call back function to run before the plugin has initialised
 
 A call back function to run before a slide has moved
 
+
 #### autoSlide
 
-A boolean value that tells the plug to start the slideshow once it has initalised
+A boolean value that tells the plugin to start the slideshow once it has initalised
+
+
+#### adaptiveHeight
+
+A boolean value that tells the plugin to scale based on the height of it's contents when the window resizes
 
 
 ## Todo

@@ -22,27 +22,27 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.7";
+    var pluginVersion = "0.4.8";
     var pluginName = "slidatron";
     var defaults = {
-        animationEngine     : null, // gsap or jquery / css
+        animationEngine     : null,     // gsap or jquery / css
         easing              : null,
         slideSelector       : null,
-        classNameSpace      : "slidatron",
+        classNameSpace      : 'slidatron',
         holdTime            : 10000,
         transitionTime      : 1000,
         translateY          : false,
         cursor              : 'move',
-        drag                : true,
-        transition          : 'left', // transition identifier
-        onAfterInit         : null, // ($elem, this)
-        onAfterMove         : null, // ($elem, this)
-        onBeforeInit        : null, // ($elem, this)
-        onBeforeMove        : null, // ($elem, this)
+        drag                : true,     // true / false / 'touch'
+        transition          : 'left',   // transition identifier
+        onAfterInit         : null,     // ($elem, this)
+        onAfterMove         : null,     // ($elem, this)
+        onBeforeInit        : null,     // ($elem, this)
+        onBeforeMove        : null,     // ($elem, this)
         autoSlide           : true,
         adaptiveHeight      : false,
-        onBeforeAdaptHeight : null, // ($elem, this)
-        onAfterAdaptHeight  : null  // ($elem, this)
+        onBeforeAdaptHeight : null,     // ($elem, this)
+        onAfterAdaptHeight  : null      // ($elem, this)
     };
 
     // The actual plugin constructor
@@ -250,7 +250,7 @@
 
 
             // drag support
-            if (options.drag) {
+            if (options.drag === true || (options.drag == 'touch' && this.hasTouch())) {
 
                 // click handler
                 $slideWrapper.find('a').on('click', function(ev){
@@ -849,34 +849,48 @@
 
         move: function(indexTo, indexFrom, time, cb) {
 
-            var _this           = this;
-            var $curElem        = indexFrom == undefined ? this.trans().curElem() : this.trans().getElemAt(indexFrom);
-            var $nextElem       = this.trans().getElemAt(indexTo);
-            var $container      = this.container;
-            var next            = this.trans().getStateForNext(indexTo);
-            var prev            = this.trans().getStateForPrev(indexTo);
-            var callback        = function(){
+            if (indexFrom == undefined) indexFrom = this.curIndex;
 
-                _this.moving    = false;
-                _this.position  = _this.trans().cur();
-                _this.curIndex  = indexTo;
+            var _this           = this,
+                $curElem        = indexFrom == undefined ? this.trans().curElem() : this.trans().getElemAt(indexFrom),
+                $nextElem       = this.trans().getElemAt(indexTo),
+                $container      = this.container,
+                next            = this.trans().getStateForNext(indexTo),
+                prev            = this.trans().getStateForPrev(indexTo),
+                ns              = this.options.classNameSpace,
+                callback        = function(){
 
-                // this is in here 3 times
-                var ids = _this.generateIndentifiers(indexTo);
-                $('.' + _this.options.classNameSpace + '-ctrl-wrapper a').removeClass('current');
-                $('#' + ids.ctrlId).addClass('current');
+                    // update state
+                    _this.moving    = false;
+                    _this.position  = _this.trans().cur();
+                    _this.curIndex  = indexTo;
 
-                // add the curret class to the current slide
-                $('.' + _this.options.classNameSpace + '-slide').removeClass('current');
-                $('.' + _this.options.classNameSpace + '-slide-' + indexTo).addClass('current');
+                    // remove all transitioning classes from the slides
+                    _this.slides
+                        .removeClass(ns + '-transitioning-to')
+                        .removeClass(ns + '-transitioning-from')
 
-                // run the post
-                if (typeof _this.options.onAfterMove == 'function') _this.options.onAfterMove($(_this.element), _this);
+                    // remove all transitioning classes from the control elems
+                    $('.' + ns + '-ctrl-wrapper a')
+                        .removeClass(ns + '-transitioning-to')
+                        .removeClass(ns + '-transitioning-from')
 
-                // run supplied callback - hmmmm - not 100% sure about this
-                if (typeof cb == 'function') cb();
+                    // this is in here 3 times
+                    var ids = _this.generateIndentifiers(indexTo);
+                    $('.' + ns + '-ctrl-wrapper a').removeClass('current');
+                    $('#' + ids.ctrlId).addClass('current');
 
-            }
+                    // add the curret class to the current slide
+                    $('.' + ns + '-slide').removeClass('current');
+                    $('.' + ns + '-slide-' + indexTo).addClass('current');
+
+                    // run the post
+                    if (typeof _this.options.onAfterMove == 'function') _this.options.onAfterMove($(_this.element), _this);
+
+                    // run supplied callback - hmmmm - not 100% sure about this
+                    if (typeof cb == 'function') cb();
+
+                };
 
             // run the pre callback
             if (typeof this.options.onBeforeMove == 'function') this.options.onBeforeMove($(this.element), this);
@@ -888,12 +902,38 @@
             var to = this.trans().css(next);
 
             // animate to on state
-            if (next!==false)
+            if (next!==false) {
+
+                // do animation
                 this.doAnimation($nextElem, this.trans().css(next), 'next', time, callback);
 
+            }
+
             // animate to off state
-            if (prev!==false && $nextElem[0] != $curElem[0])
+            if (prev!==false && $nextElem[0] != $curElem[0]) {
+
+                // do animation
                 this.doAnimation($curElem, this.trans().css(prev), 'prev', time, callback);
+            }
+
+            if (indexFrom != indexTo) {
+
+                // add classes to slides indicate intent
+                var $nEl = $(this.slides[indexTo]);
+                if ($nEl.length) $nEl.addClass(ns + '-transitioning-to');
+
+                // add classes to control elems to indicate intent
+                var nids = _this.generateIndentifiers(indexTo);
+                $('#' + nids.ctrlId).addClass(ns + '-transitioning-to');
+
+                // add classes to slides indicate intent
+                var $pEl = $(this.slides[indexFrom]);
+                if ($pEl.length) $pEl.addClass(ns + '-transitioning-from');
+
+                // add classes to control elems to indicate intent
+                var pids = _this.generateIndentifiers(indexFrom);
+                $('#' + pids.ctrlId).addClass(ns + '-transitioning-from');
+            }
 
         },
 
