@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.8";
+    var pluginVersion = "0.4.9";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null,     // gsap or jquery / css
@@ -34,7 +34,8 @@
         translateY          : false,
         cursor              : 'move',
         drag                : true,     // true / false / 'touch'
-        transition          : 'left',   // transition identifier
+        transition          : 'left',   // transition identifier - left / opacity
+        transitionModifier  : null,     // currently only works with left to disable transform
         onAfterInit         : null,     // ($elem, this)
         onAfterMove         : null,     // ($elem, this)
         onBeforeInit        : null,     // ($elem, this)
@@ -776,7 +777,7 @@
         },
 
         isAccelerated: function() {
-            return this.supports('transform') && this.supports('transition');
+            return this.supports('transform') && this.supports('transition') && this.options.transitionModifier.toLowerCase() != 'no_transform';
         },
 
         generateIndentifiers: function(index) {
