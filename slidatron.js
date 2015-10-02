@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.9";
+    var pluginVersion = "0.4.10";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null,     // gsap or jquery / css
@@ -777,7 +777,7 @@
         },
 
         isAccelerated: function() {
-            return this.supports('transform') && this.supports('transition') && this.options.transitionModifier.toLowerCase() != 'no_transform';
+            return this.supports('transform') && this.supports('transition') && String(this.options.transitionModifier).toLowerCase() != 'no_transform';
         },
 
         generateIndentifiers: function(index) {
