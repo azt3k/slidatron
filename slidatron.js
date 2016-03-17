@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.4.10";
+    var pluginVersion = "0.5.0";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null,     // gsap or jquery / css
@@ -44,6 +44,7 @@
         adaptiveHeight      : false,
         onBeforeAdaptHeight : null,     // ($elem, this)
         onAfterAdaptHeight  : null      // ($elem, this)
+        allowDefault        : false
     };
 
     // The actual plugin constructor
@@ -258,50 +259,67 @@
                     if (blockClick) ev.preventDefault();
                 });
 
-                // attach the drag event
-                $slideWrapper.on('mousedown touchstart', function(ev){
+                // context
+                $slideWrapper
 
-                    // init shared vars
-                    blockClick = false;
+                    // drag start
+                    .on('mousedown touchstart', function(ev){
 
-                    // init shared vars (translate specific)
-                    if (options.translateY) {
-                        $scrollElem = _this.findScrollingParent($slideWrapper);
-                        refScrollPoint = $scrollElem.scrollTop();
-                    }
+                        // init shared vars
+                        blockClick = false;
 
-                    // stop the show once the mouse is pressed
-                    _this.stopShow();
+                        // init shared vars (translate specific)
+                        if (options.translateY) {
+                            $scrollElem = _this.findScrollingParent($slideWrapper);
+                            refScrollPoint = $scrollElem.scrollTop();
+                        }
 
-                    // stop the animation
-                    _this.stopAnimation();
+                        // stop the show once the mouse is pressed
+                        _this.stopShow();
 
-                    // save the position
-                    _this.position = _this.trans().cur();
+                        // stop the animation
+                        _this.stopAnimation();
 
-                }).on('mouseup touchend', function(ev){
+                        // save the position
+                        _this.position = _this.trans().cur();
 
-                    dragEnd();
+                    })
 
-                }).drag(function( ev, dd ){
+                    // drag has finished
+                    .on('mouseup touchend', function(ev){
 
-                    // translate scroll
-                    if (options.translateY) $scrollElem.scrollTop(refScrollPoint - dd.deltaY);
+                        dragEnd();
 
-                    // handle the drag
-                    _this.trans().dragHandler(dd.deltaX);
+                    })
 
-                }).drag("end",function( ev, dd ){
+                    // drag has started
+                    .drag(function(ev, dd){
 
-                    // prevent a click from triggering if the delta exceeds the x threshold
-                    blockClick = Math.abs(dd.deltaX) > 5;
+                        console.log($scrollElem);
 
-                    // prevent a click from triggering if the delta exceeds the y threshold
-                    if (options.translateY && !blockClick) blockClick = Math.abs(dd.deltaY) > 5;
+                        // translate scroll
+                        if (options.translateY) $scrollElem.scrollTop(refScrollPoint - dd.deltaY);
 
-                    dragEnd();
+                        // handle the drag
+                        _this.trans().dragHandler(dd.deltaX);
 
-                }).css({ 'cursor' : this.options.cursor }); // set the cursor to the "move" one
+                    })
+
+                    // drag is finished
+                    .drag("end",function(ev, dd){
+
+                        // prevent a click from triggering if the delta exceeds the x threshold
+                        blockClick = Math.abs(dd.deltaX) > 5;
+
+                        // prevent a click from triggering if the delta exceeds the y threshold
+                        if (options.translateY && !blockClick) blockClick = Math.abs(dd.deltaY) > 5;
+
+                        dragEnd();
+
+                    })
+
+                    // set the cursor to the "move" one
+                    .css({ 'cursor' : this.options.cursor });
 
             }
 
