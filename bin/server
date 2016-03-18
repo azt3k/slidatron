@@ -10,4 +10,6 @@ var serveStatic = require('serve-static');
 connect().use(serveStatic(__dirname + '/..')).listen(8080);
 " > $DIR/../tmp/server.js
 
+echo "Starting server on http://localhost:8080"
+
 node $DIR/../tmp/server.js

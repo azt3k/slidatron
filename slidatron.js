@@ -43,7 +43,7 @@
         autoSlide           : true,
         adaptiveHeight      : false,
         onBeforeAdaptHeight : null,     // ($elem, this)
-        onAfterAdaptHeight  : null      // ($elem, this)
+        onAfterAdaptHeight  : null,      // ($elem, this)
         allowDefault        : false
     };
 
@@ -293,30 +293,35 @@
                     })
 
                     // drag has started
-                    .drag(function(ev, dd){
+                    .drag(
+                        function(ev, dd){
 
-                        console.log($scrollElem);
+                            // translate scroll
+                            if (options.translateY) $scrollElem.scrollTop(refScrollPoint - dd.deltaY);
 
-                        // translate scroll
-                        if (options.translateY) $scrollElem.scrollTop(refScrollPoint - dd.deltaY);
+                            // handle the drag
+                            _this.trans().dragHandler(dd.deltaX);
 
-                        // handle the drag
-                        _this.trans().dragHandler(dd.deltaX);
-
-                    })
+                        },
+                        {allowDefault: _this.options.allowDefault}
+                    )
 
                     // drag is finished
-                    .drag("end",function(ev, dd){
+                    .drag(
+                        "end",
+                        function(ev, dd){
 
-                        // prevent a click from triggering if the delta exceeds the x threshold
-                        blockClick = Math.abs(dd.deltaX) > 5;
+                            // prevent a click from triggering if the delta exceeds the x threshold
+                            blockClick = Math.abs(dd.deltaX) > 5;
 
-                        // prevent a click from triggering if the delta exceeds the y threshold
-                        if (options.translateY && !blockClick) blockClick = Math.abs(dd.deltaY) > 5;
+                            // prevent a click from triggering if the delta exceeds the y threshold
+                            if (options.translateY && !blockClick) blockClick = Math.abs(dd.deltaY) > 5;
 
-                        dragEnd();
+                            dragEnd();
 
-                    })
+                        },
+                        {allowDefault: _this.options.allowDefault}
+                    )
 
                     // set the cursor to the "move" one
                     .css({ 'cursor' : this.options.cursor });

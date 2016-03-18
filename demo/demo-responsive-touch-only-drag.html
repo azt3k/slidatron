@@ -36,10 +36,10 @@
             line-height: 300px;
         }
         .st-prev {
-            left: -20px;
+            left: 0px;
         }
         .st-next{
-            right: -20px;
+            right: 0px;
         }
         #container {
             width: 100%;
@@ -55,6 +55,7 @@
             width: 100px;
             height: 300px;
             padding: 10px;
+            padding-right: 20px;
             position: absolute;
             right:0;
             top: 0;
@@ -83,13 +84,25 @@
             background: #ccc;
         }
         .container {
+            width:100%;
             max-width:990px;
             margin:auto;
+        }
+        @media (min-width: 990px) {
+            .st-prev {
+                left: -20px;
+            }
+            .st-next{
+                right: -20px;
+            }
+            #container div.caption {
+                right:0;
+            }
         }
     </style>
 
     <script type="text/javascript" language="javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" language="javascript" src="https://rawgit.com/GerHobbelt/jquery.threedubmedia/master/event.drag/jquery.event.drag.js"></script>
+    <script type="text/javascript" language="javascript" src="https://rawgit.com/azt3k/slidatron.drag/master/index.min.js"></script>
     <script type="text/javascript" language="javascript" src="../slidatron.js"></script>
 
     <script>
@@ -114,9 +127,6 @@
             </div><br>
 
             <div class="slidatron-wrap">
-                <a href="../index.html" class="back-btn pull-right btn btn-default">
-                    <span class="glyphicon glyphicon-arrow-left"></span> Back
-                </a>
                 <div id="container">
                     <div>
                         <img src="http://stevensegallery.com/990/300">

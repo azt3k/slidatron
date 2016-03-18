@@ -102,13 +102,15 @@
     </style>
 
     <script type="text/javascript" language="javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" language="javascript" src="https://rawgit.com/azt3k/slidatron.drag/master/index.min.js"></script>
+    <!-- <script type="text/javascript" language="javascript" src="https://rawgit.com/azt3k/slidatron.drag/master/index.min.js"></script> -->
+    <script type="text/javascript" language="javascript" src="../bower_components/slidatron.drag/index.js"></script>
     <script type="text/javascript" language="javascript" src="../slidatron.js"></script>
 
     <script>
         $(document).ready(function(){
             $('#container').slidatron({
-                translateY: true
+                allowDefault: true,
+                drag: 'touch'
             });
         });
     </script>
@@ -141,6 +143,14 @@
                     </div>
                 </div>
             </div>
+
+            <h2>This is some additional content to make the page taller</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin at iaculis lacus, consequat posuere est. Pellentesque ultricies sed lacus id imperdiet. In ut diam vitae ante fermentum ultrices. Etiam eget libero at eros tempor finibus. Duis in augue justo. Nunc ac arcu felis. Suspendisse gravida auctor lectus, nec congue ipsum venenatis rhoncus. Ut a semper nisl. Mauris id mattis diam. Nullam convallis mauris eget sem condimentum tempor. Sed sed ornare felis, quis ultrices eros. Nunc volutpat ornare nunc ac imperdiet. In hac habitasse platea dictumst.</p>
+            <p>Quisque aliquet justo luctus dui ornare accumsan. Nam bibendum, metus ut mattis tempus, sem neque commodo erat, ut mattis metus urna et dolor. Phasellus convallis volutpat rhoncus. Cras rhoncus turpis nec erat efficitur convallis. Donec id elit ut felis convallis gravida vel molestie leo. Nunc varius, sapien quis pellentesque aliquam, nunc felis ornare metus, ut tincidunt lacus felis id nisl. Vivamus gravida vitae velit sed consequat. Sed semper pellentesque interdum.</p>
+            <p>Nunc in tortor quis odio tristique interdum. Phasellus molestie risus nec risus congue, ut tristique dui vulputate. Ut vel sapien a mauris consequat elementum ut sed justo. Praesent volutpat mi ut purus posuere, vitae fermentum augue rutrum. Quisque finibus bibendum nisi nec elementum. Aliquam at fringilla turpis, vel dignissim mi. Nunc tempor libero sapien.</p>
+            <p>Sed nec vestibulum quam. Nullam efficitur pellentesque ipsum et elementum. Praesent vitae suscipit arcu. Sed id metus sit amet neque ultrices sollicitudin. Nunc fringilla condimentum maximus. Etiam sed felis sit amet urna imperdiet dapibus. Maecenas eu aliquet leo.</p>
+            <p>Aenean varius risus ac velit volutpat, et finibus nisl laoreet. Duis lorem libero, aliquam eget lorem pulvinar, aliquet facilisis risus. Aliquam erat volutpat. Vestibulum pulvinar risus nec mauris placerat ullamcorper. Aenean quis gravida justo, vitae bibendum ligula. Praesent tempus neque eu elit ornare, nec fermentum nisi feugiat. Donec consequat ante nec diam facilisis feugiat. Vestibulum commodo sagittis eros, condimentum commodo urna hendrerit vel. In hac habitasse platea dictumst. Nullam neque leo, dignissim eget justo quis, vestibulum feugiat tellus. Vivamus tincidunt fringilla elit. Cras et ultrices urna, eu aliquet eros. Mauris consequat consectetur tristique. Phasellus vehicula libero dolor, quis eleifend tellus lacinia et. Sed feugiat porttitor est, id tincidunt metus consequat non. </p>
+
         </div>
     </body>
 
