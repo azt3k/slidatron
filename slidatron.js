@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.5.0";
+    var pluginVersion = "0.5.1";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null,     // gsap or jquery / css
@@ -259,11 +259,30 @@
                     if (blockClick) ev.preventDefault();
                 });
 
+                // capture the start position
+                var sPos = null, dragging = false;
+
                 // context
                 $slideWrapper
 
                     // drag start
-                    .on('mousedown touchstart', function(ev){
+                    .on('mousedown touchstart', function(ev) {
+
+                        // capture the pointer event
+                        sPos = _this.pointerEventToXY(ev);
+
+                        // block text select / image drag on non touch
+                        if (!_this.hasTouch()) {
+                            $slideWrapper.on('dragstart', function() { return false; });
+                            $slideWrapper.css({
+                                '-webkit-touch-callout': 'none',
+                                '-webkit-user-select': 'none',
+                                '-khtml-user-select': 'none',
+                                '-moz-user-select': 'none',
+                                '-ms-user-select': 'none',
+                                'user-select': 'none',
+                            });
+                        }
 
                         // init shared vars
                         blockClick = false;
@@ -285,46 +304,63 @@
 
                     })
 
-                    // drag has finished
-                    .on('mouseup touchend', function(ev){
+                    // drag has started
+                    .on('mousemove touchmove', function(ev) {
 
+                        if (sPos) {
+
+                            // block touch scroll?
+                            ev.preventDefault();
+
+                            // calc dela
+                            var delta = _this.calcDelta(sPos, _this.pointerEventToXY(ev));
+
+                            // mark us as dragging if we've move sufficiently
+                            dragging = delta.x > 5;
+
+                            // translate scroll
+                            if (options.translateY) $scrollElem.scrollTop(refScrollPoint - delta.y);
+
+                            // handle the drag
+                            _this.trans().dragHandler(delta.x);
+
+                        }
+                    })
+
+                    // drag is finished
+                    .on('mouseup touchend', function(ev) {
+
+                        // calcDelta
+                        var delta = _this.calcDelta(sPos, _this.pointerEventToXY(ev));
+
+                        // prevent a click from triggering if the delta exceeds the x threshold
+                        blockClick = Math.abs(delta.x) > 5;
+
+                        // prevent a click from triggering if the delta exceeds the y threshold
+                        if (options.translateY && !blockClick) blockClick = Math.abs(delta.y) > 5;
+
+                        // do the bizzo
                         dragEnd();
+
+                        // wipe sPos
+                        sPos = null;
+                        dragging = false;
 
                     })
 
-                    // drag has started
-                    .drag(
-                        function(ev, dd){
-
-                            // translate scroll
-                            if (options.translateY) $scrollElem.scrollTop(refScrollPoint - dd.deltaY);
-
-                            // handle the drag
-                            _this.trans().dragHandler(dd.deltaX);
-
-                        },
-                        {allowDefault: _this.options.allowDefault}
-                    )
-
-                    // drag is finished
-                    .drag(
-                        "end",
-                        function(ev, dd){
-
-                            // prevent a click from triggering if the delta exceeds the x threshold
-                            blockClick = Math.abs(dd.deltaX) > 5;
-
-                            // prevent a click from triggering if the delta exceeds the y threshold
-                            if (options.translateY && !blockClick) blockClick = Math.abs(dd.deltaY) > 5;
-
-                            dragEnd();
-
-                        },
-                        {allowDefault: _this.options.allowDefault}
-                    )
-
                     // set the cursor to the "move" one
                     .css({ 'cursor' : this.options.cursor });
+
+                // on old android touchmove stops firing when we start scrolling,
+                // i.e. if preventDefault isn't called on touch move
+                // faking the touch end on these devices at least allows it to recover
+                this.findScrollingParent($slideWrapper, true).on('scroll', function(e) {
+                    if (sPos) {
+                        sPos = null;
+                        dragging = false;
+                        dragEnd();
+                    }
+                });
 
             }
 
@@ -384,21 +420,64 @@
 
         },
 
-        hasTouch: function() {
-            try {
-                document.createEvent("TouchEvent");
-                return true;
-            } catch (e) {
-                return false;
+        pointerEventToXY: function(e) {
+            var out = {
+                x: 0,
+                y: 0
+            };
+            if (e.type == 'touchstart' || e.type == 'touchmove' || e.type == 'touchend' || e.type == 'touchcancel') {
+                var touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+                out.x = touch.pageX;
+                out.y = touch.pageY;
+            } else if (e.type == 'mousedown' || e.type == 'mouseup' || e.type == 'mousemove' || e.type == 'mouseover' || e.type == 'mouseout' || e.type == 'mouseenter' || e.type == 'mouseleave') {
+                out.x = e.pageX;
+                out.y = e.pageY;
             }
+            return out;
         },
 
-        findScrollingParent: function($elem) {
+        calcDelta: function(sPos, ePos) {
+            return {
+                x: ePos.x - sPos.x,
+                y: ePos.y - sPos.y
+            };
+        },
+
+        // cached has touch lookup
+        hasTouchCache: null,
+
+        // detect touch
+        hasTouch: function() {
+
+            // return the cached lookup
+            if (this.hasTouchCache === null) {
+
+                // do the lookup
+                try {
+                    document.createEvent("TouchEvent");
+                    this.hasTouchCache = true;
+                } catch (e) {
+                    this.hasTouchCache = false;
+                }
+            }
+
+            return this.hasTouchCache;
+        },
+
+        findScrollingParent: function($elem, forListening) {
+
+            // is this for position or to move the scroll point
+            forListening = forListening || false;
+
+            // find the scrolling parent
             var $parent = $elem;
             while ($parent && $parent.css('overflow-y') != 'scroll' && $parent.css('overflow-y') != 'auto' && !$parent.is('body')) {
                 $parent = $parent.parent();
             }
-            return $parent.is('body') ? $('html, body') : $parent;
+
+            // return the right thing
+            if ($parent.is('body')) return forListening ? $(window) : $('html, body');
+            return $parent;
         },
 
         slideW: function(targetW, $elem) {

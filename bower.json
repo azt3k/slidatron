@@ -16,7 +16,6 @@
   "license": "BSD",
   "dependencies": {
     "jquery"          : "~1.11.1",
-    "slidatron.drag"  : "~1.0.0",
     "gsap"            : "~1.14.1"
   }
 }
