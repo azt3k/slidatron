@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.5.1";
+    var pluginVersion = "0.5.2";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null,     // gsap or jquery / css
