@@ -22,7 +22,7 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.5.3";
+    var pluginVersion = "0.5.4";
     var pluginName = "slidatron";
     var defaults = {
         animationEngine     : null,     // gsap or jquery / css
@@ -972,11 +972,15 @@
                     _this.slides
                         .removeClass(ns + '-transitioning-to')
                         .removeClass(ns + '-transitioning-from')
+                        .removeClass('st-transitioning-to')
+                        .removeClass('st-transitioning-from');
 
                     // remove all transitioning classes from the control elems
                     $('.' + ns + '-ctrl-wrapper a')
                         .removeClass(ns + '-transitioning-to')
                         .removeClass(ns + '-transitioning-from')
+                        .removeClass('st-transitioning-to')
+                        .removeClass('st-transitioning-from');
 
                     // this is in here 3 times
                     var ids = _this.generateIndentifiers(indexTo);
@@ -1023,19 +1027,29 @@
 
                 // add classes to slides indicate intent
                 var $nEl = $(this.slides[indexTo]);
-                if ($nEl.length) $nEl.addClass(ns + '-transitioning-to');
+                if ($nEl.length) {
+                    $nEl.addClass(ns + '-transitioning-to')
+                        .addClass('st-transitioning-to');
+                }
 
                 // add classes to control elems to indicate intent
                 var nids = _this.generateIndentifiers(indexTo);
-                $('#' + nids.ctrlId).addClass(ns + '-transitioning-to');
+                $('#' + nids.ctrlId)
+                    .addClass(ns + '-transitioning-to')
+                    .addClass('st-transitioning-to');
 
                 // add classes to slides indicate intent
                 var $pEl = $(this.slides[indexFrom]);
-                if ($pEl.length) $pEl.addClass(ns + '-transitioning-from');
+                if ($pEl.length) {
+                    $pEl.addClass(ns + '-transitioning-from')
+                        .addClass('st-transitioning-from');
+                }
 
                 // add classes to control elems to indicate intent
                 var pids = _this.generateIndentifiers(indexFrom);
-                $('#' + pids.ctrlId).addClass(ns + '-transitioning-from');
+                $('#' + pids.ctrlId)
+                    .addClass(ns + '-transitioning-from')
+                    .addClass('st-transitioning-from');
             }
 
         },
