@@ -1,6 +1,6 @@
 {
   "name": "slidatron",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "description": "CSS / mobile friendly jQuery slider",
   "main": "jquery.slidatron.js",
   "scripts": {

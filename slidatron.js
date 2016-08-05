@@ -22,9 +22,11 @@
     "use strict";
 
     // Create the defaults once
-    var pluginVersion = "0.5.4";
+    var pluginVersion = "0.6.0";
     var pluginName = "slidatron";
     var defaults = {
+        startIndex          : 0,
+        swipe               : true,
         animationEngine     : null,     // gsap or jquery / css
         easing              : null,
         slideSelector       : null,
@@ -85,13 +87,16 @@
         dragTo: null,
         init: function () {
 
-            //save a copy for later
+            // save a copy for later
             this.$original = $(this.element).clone()
             this.originalHTML = $(this.element)[0].outerHTML;
 
             // set the scope of some vars
             var options         = this.options;
             var _this           = this;
+
+            // set the current index
+            this.curIndex = options.startIndex;
 
             // do a quick check to see if we can use translate
             this.accelerated    = this.isAccelerated();
@@ -362,6 +367,9 @@
                     }
                 });
 
+                // swipe gestures?
+                if (this.hasTouch() && options.swipe) this.swiper();
+
             }
 
             // resize callback
@@ -462,6 +470,84 @@
             }
 
             return this.hasTouchCache;
+        },
+
+        swiper: function() {
+
+            // this method needs a refactor
+
+            var down = {x: null, y: null},
+                sTime = null,
+                type = null,
+                _this = this,
+                mThreshold = 60, // move - what are considering a swipe
+                tThreshold = 600, // time - what are considering a swipe
+                next = function(e) {
+                    if ((_this.curIndex + 1) > (_this.slides.length - 1)) return;
+                    var next = _this.curIndex + 1 ;
+                    _this.stopShow();
+                    _this.move(next);
+                    _this.startShow();
+                },
+                prev = function(e) {
+                    if ((_this.curIndex - 1) < 0) return;
+                    var prev = _this.curIndex - 1 ;
+                    _this.stopShow();
+                    _this.move(prev);
+                    _this.startShow();
+                };
+
+            this.slideWrapper
+                .off('touchstart.swiper')
+                .on('touchstart.swiper', function(evt) {
+                    sTime = (new Date).getTime();
+                    down = _this.pointerEventToXY(evt);
+                })
+                .off('touchmove.swiper')
+                .on('touchmove.swiper', function(evt) {
+                    if ( ! down.x || ! down.y ) {
+                        return;
+                    }
+
+                    var up = _this.pointerEventToXY(evt),
+                        xDiff = down.x - up.x,
+                        yDiff = down.y - up.y;
+
+                    if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {/*most significant*/
+                        if ( xDiff > 0 ) {
+                            type = 'left';
+                        } else {
+                            type = 'right';
+                        }
+                    } else {
+                        if ( yDiff > 0 ) {
+                            type = 'up';
+                        } else {
+                            type = 'down';
+                        }
+                    }
+                })
+                .off('touchend.swiper')
+                .on('touchend.swiper', function(evt) {
+
+                    var up = _this.pointerEventToXY(evt),
+                        xDiff = down.x - up.x,
+                        yDiff = down.y - up.y,
+                        eTime = (new Date).getTime();
+
+                    // do nothing if we considered this a drag rather than a swipe
+                    if ((eTime - sTime) > tThreshold) return;
+
+                    // handle swipes
+                    if ((type == 'left' || type == 'right') && Math.abs(xDiff) > mThreshold) {
+                        if (type == 'right') prev();
+                        else next();
+                    }
+                    // else if ((type == 'up' || type == 'down') && Math.abs(yDiff) > threshold) {
+                    //
+                    // }
+                });
+
         },
 
         findScrollingParent: function($elem, forListening) {
